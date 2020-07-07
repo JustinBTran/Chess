@@ -74,7 +74,7 @@ void SetSpriteTextures(GameState gameState,sf::Sprite sprites[8][8], int boardSi
     }
 }
 
-void Win(sf::RenderWindow& window, bool player) {
+void Win(sf::RenderWindow& window, bool player, bool stalemate) {
     float gridSize = 180.f;
     sf::Text text;
     sf::Font font;
@@ -88,7 +88,10 @@ void Win(sf::RenderWindow& window, bool player) {
 
     // set the color
     text.setFillColor(sf::Color::Red);
-    if (player == white) {
+    if (stalemate) {
+        text.setString("DRAW");
+    }
+    else if (player == white) {
         text.setString("White Win!!!");
     }
     else {
@@ -226,6 +229,7 @@ int main()
     tileSelector.setOutlineColor(sf::Color::Green);
 
     bool player = white; //for now player can only play as white
+    
     sf::Color playerColor = sf::Color::White;
     sf::Vector2i select(-1, -1);
     bool didMove = false;
@@ -235,6 +239,8 @@ int main()
     int x_newAI;
     int y_oldAI;
     int x_oldAI;
+    sf::Vector2i oppOld(-1,-1);
+    sf::Vector2i oppNew(-1, -1);
 
     while (window.isOpen()) {
 
@@ -267,6 +273,11 @@ int main()
                         //printf("move");
                         gameState.whiteMove(gameState, select.y, select.x, mousePosGrid.y, mousePosGrid.x);
                         didMove = true;
+                        //recolor red tiles
+                        if (oppOld.x != -1) {
+                            tileMap[oppOld.x][oppOld.y].setFillColor(ResetTileColor(oppOld.x,oppOld.y));
+                            tileMap[oppNew.x][oppNew.y].setFillColor(ResetTileColor(oppNew.x, oppNew.y));
+                        }
 
                     }
                     tileMap[select.x][select.y].setFillColor(ResetTileColor(select.x, select.y));
@@ -317,11 +328,14 @@ int main()
         }
         //Check for win/loss
         gameState.ScanBoard(player);
-        if (gameState.blackMoveableUnits.size() == 0) {
-            Win(window, white);
+        if (gameState.blackMoveableUnits.size() == 0 && gameState.whiteMoveableUnits.size() == 0) {
+            Win(window, white, true);
+        }
+        else if (gameState.blackMoveableUnits.size() == 0) {
+            Win(window, white,false);
         }
         else if (gameState.whiteMoveableUnits.size() == 0) {
-            Win(window, black);
+            Win(window, black,false);
         }
 
         window.draw(tileSelector);
@@ -331,7 +345,7 @@ int main()
 
         if (didMove) {
             gameState.ScanBoard(!player);
-            data = minimax(gameState, 3, -9999, 9999, black);
+            data = minimax(gameState, 3, -9999, 9999, !player);
             y_newAI = data[1] / 10;
             x_newAI = data[1] % 10;
             y_oldAI = data[2] / 10;
@@ -339,6 +353,13 @@ int main()
 
             AIMove(gameState, y_oldAI, x_oldAI, y_newAI, x_newAI);
             didMove = false;
+            oppNew.x = x_newAI;
+            oppNew.y = y_newAI;
+            oppOld.y = y_oldAI;
+            oppOld.x = x_oldAI;
+            tileMap[oppOld.x][oppOld.y].setFillColor(sf::Color::Red);
+            tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
+
 
 
         }

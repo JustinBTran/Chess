@@ -93,6 +93,11 @@ void GameState::ScanBoard(bool player) {
 	bool hasWhiteKing = false;
 	int movePnts = 15;
 	int pwnAdvncmntFctr = 20;
+	King* blackKing = dynamic_cast<King*>(board[blackKingY][blackKingX]);
+	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
+	bool blackKingInCheck = blackKing->inCheck(*this,blackKingY,blackKingX);
+	bool whiteKingInCheck = whiteKing->inCheck(*this,whiteKingY,whiteKingX);
+	
 	for (int row = 0; row < 8; row++) {
 		for (int col = 0; col < 8; col++) {
 			if (board[row][col] != nullptr) {
@@ -192,6 +197,23 @@ void GameState::ScanBoard(bool player) {
 	if (player == black) {
 		ReverseVector(blackMoveableUnits);
 	}
+	if (whiteKingInCheck && whiteMoveableUnits.size() == 0) {
+		blackPnts = 10000;
+		whitePnts = 0;
+	}
+	else if (blackKingInCheck && blackMoveableUnits.size() == 0) {
+		blackPnts = 0;
+		whitePnts = 10000;
+	}
+	else if ((!whiteKingInCheck) && whiteMoveableUnits.size() == 0) {
+		blackPnts = 0;
+		whitePnts = 0;
+	}
+	else if ((!blackKingInCheck) && blackMoveableUnits.size() == 0) {
+		blackPnts = 0;
+		whitePnts = 0;
+	}
+
 }
 
 void GameState::SetWhiteKingPos(int y, int x) {

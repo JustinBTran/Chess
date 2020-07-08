@@ -214,10 +214,10 @@ void GameState::ScanBoard(bool player) {
 		ReverseVector(blackMoveableUnits);
 	}
 	if (whiteKing->hasMoved == true) {
-		blackPnts = blackPnts + 30;
+		blackPnts = blackPnts + 20;
 	}
 	if (blackKing->hasMoved == true) {
-		whitePnts = whitePnts + 30;
+		whitePnts = whitePnts + 20;
 	}
 	if (whiteKingInCheck && whiteMoveableUnits.size() == 0) {
 		blackPnts = 10000;

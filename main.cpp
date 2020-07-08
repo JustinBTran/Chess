@@ -137,7 +137,7 @@ int main()
     King* whiteKing = new King(white);
     King* blackKing = new King(black);
 
-    Piece* board[8][8] = { {blackRookA,nullptr,nullptr,nullptr,blackKing,nullptr,nullptr,nullptr},
+    /*Piece* board[8][8] = { {blackRookA,nullptr,nullptr,nullptr,blackKing,nullptr,nullptr,nullptr},
                         {blackPawnA,whitePawnB,blackPawnC,blackPawnD,blackPawnE,blackPawnF,nullptr,nullptr},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
@@ -146,9 +146,9 @@ int main()
                         {whitePawnA,nullptr,whitePawnC,whitePawnD,whitePawnE,whitePawnF,whitePawnG,whitePawnH},
                         {whiteRookA,whiteKnightA,whiteBishopA,whiteQueen,whiteKing,whiteBishopB,whiteKnightB,whiteRookB},
     };
-    
+    */
 
-    /*Piece* board[8][8] = { {blackRookA,blackKnightA,blackBishopA,blackQueen,blackKing,blackBishopB,blackKnightB,blackRookB},
+    Piece* board[8][8] = { {blackRookA,blackKnightA,blackBishopA,blackQueen,blackKing,blackBishopB,blackKnightB,blackRookB},
                         {blackPawnA,blackPawnB,blackPawnC,blackPawnD,blackPawnE,blackPawnF,blackPawnG,blackPawnH},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
@@ -156,7 +156,7 @@ int main()
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
                         {whitePawnA,whitePawnB,whitePawnC,whitePawnD,whitePawnE,whitePawnF,whitePawnG,whitePawnH},
                         {whiteRookA,whiteKnightA,whiteBishopA,whiteQueen,whiteKing,whiteBishopB,whiteKnightB,whiteRookB},
-    };*/
+    };
     gameState.SetBoard(board);
     gameState.SetBlackKingPos(0, 4);
     gameState.SetWhiteKingPos(7, 4);

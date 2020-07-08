@@ -87,7 +87,7 @@ void Win(sf::RenderWindow& window, bool player, bool stalemate) {
     text.setPosition(gridSize*2.5, gridSize*4);
 
     // set the color
-    text.setFillColor(sf::Color::Red);
+    text.setFillColor(sf::Color::Magenta);
     if (stalemate) {
         text.setString("DRAW");
     }
@@ -97,8 +97,6 @@ void Win(sf::RenderWindow& window, bool player, bool stalemate) {
     else {
         text.setString("Black Win!!!");
     }
-    
-
     window.draw(text);
 }
 
@@ -139,7 +137,18 @@ int main()
     King* whiteKing = new King(white);
     King* blackKing = new King(black);
 
-    Piece* board[8][8] = { {blackRookA,blackKnightA,blackBishopA,blackQueen,blackKing,blackBishopB,blackKnightB,blackRookB},
+    Piece* board[8][8] = { {blackRookA,nullptr,nullptr,nullptr,blackKing,nullptr,nullptr,nullptr},
+                        {blackPawnA,whitePawnB,blackPawnC,blackPawnD,blackPawnE,blackPawnF,nullptr,nullptr},
+                        {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
+                        {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
+                        {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr ,nullptr,nullptr},
+                        {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
+                        {whitePawnA,nullptr,whitePawnC,whitePawnD,whitePawnE,whitePawnF,whitePawnG,whitePawnH},
+                        {whiteRookA,whiteKnightA,whiteBishopA,whiteQueen,whiteKing,whiteBishopB,whiteKnightB,whiteRookB},
+    };
+    
+
+    /*Piece* board[8][8] = { {blackRookA,blackKnightA,blackBishopA,blackQueen,blackKing,blackBishopB,blackKnightB,blackRookB},
                         {blackPawnA,blackPawnB,blackPawnC,blackPawnD,blackPawnE,blackPawnF,blackPawnG,blackPawnH},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
@@ -147,7 +156,7 @@ int main()
                         {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr},
                         {whitePawnA,whitePawnB,whitePawnC,whitePawnD,whitePawnE,whitePawnF,whitePawnG,whitePawnH},
                         {whiteRookA,whiteKnightA,whiteBishopA,whiteQueen,whiteKing,whiteBishopB,whiteKnightB,whiteRookB},
-    };
+    };*/
     gameState.SetBoard(board);
     gameState.SetBlackKingPos(0, 4);
     gameState.SetWhiteKingPos(7, 4);
@@ -213,11 +222,12 @@ int main()
             tileMap[x][y].setSize(sf::Vector2f(gridSize, gridSize));
             if ((y + x) % 2 == 0) {
                 tileMap[x][y].setFillColor(sf::Color::White);
+
             }
             else {
                 tileMap[x][y].setFillColor(Gray);
             }
-            tileMap[x][y].setOutlineThickness(1.f);
+            tileMap[x][y].setOutlineThickness(2.4);
             tileMap[x][y].setOutlineColor(sf::Color::Black);
             tileMap[x][y].setPosition(x * gridSize, y * gridSize);
         }
@@ -225,15 +235,16 @@ int main()
 
     sf::RectangleShape tileSelector(sf::Vector2f(gridSize, gridSize));
     tileSelector.setFillColor(sf::Color::Transparent);
-    tileSelector.setOutlineThickness(1.f);
+    tileSelector.setOutlineThickness(3.f);
     tileSelector.setOutlineColor(sf::Color::Green);
 
+    bool game = true;
     bool player = white; //for now player can only play as white
     
     sf::Color playerColor = sf::Color::White;
     sf::Vector2i select(-1, -1);
     bool didMove = false;
-    //variables for AIMOve
+    //variables for AIMove
     array<int, 3> data;
     int y_newAI;
     int x_newAI;
@@ -265,8 +276,10 @@ int main()
             if (evnt.type == sf::Event::Closed)
                 window.close();
             if (evnt.type == sf::Event::MouseButtonPressed) {
-                printf("\nMouse Pos X: %d, Mouse Pos Y: %d", mousePosGrid.x, mousePosGrid.y);
-                //tileMap[mousePosGrid.x][mousePosGrid.y].setFillColor(sf::Color::Transparent);
+                if (oppOld.x != -1) { //recolor incase it got overwritten
+                    tileMap[oppOld.x][oppOld.y].setFillColor(sf::Color::Red);
+                    tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
+                }
                 if (select.x != -1) { // check if a piece is already selected
                     vector<array<int, 2>>moves = gameState.board[select.y][select.x]->getMoves(gameState, select.y, select.x);
                     if (std::find(moves.begin(), moves.end(), std::array<int, 2>{ (int)mousePosGrid.y, (int)mousePosGrid.x }) != moves.end()) {
@@ -275,12 +288,12 @@ int main()
                         didMove = true;
                         //recolor red tiles
                         if (oppOld.x != -1) {
-                            tileMap[oppOld.x][oppOld.y].setFillColor(ResetTileColor(oppOld.x,oppOld.y));
-                            tileMap[oppNew.x][oppNew.y].setFillColor(ResetTileColor(oppNew.x, oppNew.y));
+                            tileMap[oppOld.x][oppOld.y].setFillColor(ResetTileColor(oppOld.y,oppOld.x));
+                            tileMap[oppNew.x][oppNew.y].setFillColor(ResetTileColor(oppNew.y, oppNew.x));
                         }
 
                     }
-                    tileMap[select.x][select.y].setFillColor(ResetTileColor(select.x, select.y));
+                    tileMap[select.x][select.y].setFillColor(ResetTileColor(select.y, select.x));
                     for (array<int, 2> move : moves) {
                         tileMap[move[1]][move[0]].setFillColor(ResetTileColor(move[1], move[0]));
                     }
@@ -288,6 +301,8 @@ int main()
                     select.y = -1;
 
                 }
+              
+
                 if (gameState.board[mousePosGrid.y][mousePosGrid.x] != nullptr && gameState.board[mousePosGrid.y][mousePosGrid.x]->color == player && didMove == false) {
                     select.x = mousePosGrid.x;
                     select.y = mousePosGrid.y;
@@ -297,6 +312,7 @@ int main()
                     for (array<int, 2> move : gameState.board[select.y][select.x]->getMoves(gameState, select.y, select.x)) {
                         //sprites[move[0]][move[1]].setTexture(dot);
                         tileMap[move[1]][move[0]].setFillColor(sf::Color::Blue);
+                        
 
                     }
                 }
@@ -330,39 +346,66 @@ int main()
         gameState.ScanBoard(player);
         if (gameState.blackMoveableUnits.size() == 0 && gameState.whiteMoveableUnits.size() == 0) {
             Win(window, white, true);
+            game = false;
+            
         }
         else if (gameState.blackMoveableUnits.size() == 0) {
             Win(window, white,false);
+            game = false;
+           
         }
         else if (gameState.whiteMoveableUnits.size() == 0) {
             Win(window, black,false);
+            game = false;
+            
         }
 
         window.draw(tileSelector);
         //render
         window.display();
+        if (game == false) {
+            //didMove = false;
+            //loop until player closes the game
+            while (true) {
+                sf::Event end;
+                while (window.pollEvent(end))
+                {
+                    if (end.type == sf::Event::Closed) {
+                        window.close();
+                    }
+                    else
+                        if (end.type == sf::Event::KeyPressed)
+                            window.close();
+                        else if (end.type == sf::Event::MouseButtonPressed) {
+                            window.close();
+                        }
 
+                }
+            }
+            break;
+        }
 
         if (didMove) {
             gameState.ScanBoard(!player);
             data = minimax(gameState, 3, -9999, 9999, !player);
-            y_newAI = data[1] / 10;
-            x_newAI = data[1] % 10;
-            y_oldAI = data[2] / 10;
-            x_oldAI = data[2] % 10;
+            if (data[1] != -1) {
+                y_newAI = data[1] / 10;
+                x_newAI = data[1] % 10;
+                y_oldAI = data[2] / 10;
+                x_oldAI = data[2] % 10;
 
-            AIMove(gameState, y_oldAI, x_oldAI, y_newAI, x_newAI);
-            didMove = false;
-            oppNew.x = x_newAI;
-            oppNew.y = y_newAI;
-            oppOld.y = y_oldAI;
-            oppOld.x = x_oldAI;
-            tileMap[oppOld.x][oppOld.y].setFillColor(sf::Color::Red);
-            tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
-
-
-
+                AIMove(gameState, y_oldAI, x_oldAI, y_newAI, x_newAI);
+                didMove = false;
+                oppNew.x = x_newAI;
+                oppNew.y = y_newAI;
+                oppOld.y = y_oldAI;
+                oppOld.x = x_oldAI;
+                tileMap[oppOld.x][oppOld.y].setFillColor(sf::Color::Red);
+                tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
+            }
+            
         }
+
     }
 
 

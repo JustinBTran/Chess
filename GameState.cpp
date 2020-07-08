@@ -188,8 +188,24 @@ void GameState::ScanBoard(bool player) {
 						blackPnts += board[row][col]->moves.size() * movePnts;
 					}
 					break;
-					//king does not garner any moves
+				case 5:
+					if(board[row][col]->color == white) {
+						if ((row < 3 && board[0][0] == nullptr) || (row>5 && board[0][7] == nullptr)) {
+							whitePnts = whitePnts + 70;
+						}
+						if(col>5){
+							whitePnts = whitePnts + 50;
+						}
+					}else if (board[row][col]->color == black) {
+						if ((row < 3 && board[7][0] == nullptr) || (row>5 && board[7][7] == nullptr)) {
+							blackPnts = blackPnts + 70;
+						}
+						if (col < 2) {
+							blackPnts = blackPnts + 50;
+						}
+					}
 				}
+
 			}
 		}
 	}

@@ -190,17 +190,17 @@ void GameState::ScanBoard(bool player) {
 					break;
 				case 5:
 					if(board[row][col]->color == white) {
-						if ((row < 3 && board[0][0] == nullptr) || (row>5 && board[0][7] == nullptr)) {
-							whitePnts = whitePnts + 70;
+						if ((row < 3 && board[7][0] == nullptr) || (row>5 && board[7][7] == nullptr)) {
+							whitePnts = whitePnts + 200;
 						}
-						if(col>5){
+						if(col>6){
 							whitePnts = whitePnts + 50;
 						}
 					}else if (board[row][col]->color == black) {
-						if ((row < 3 && board[7][0] == nullptr) || (row>5 && board[7][7] == nullptr)) {
-							blackPnts = blackPnts + 70;
+						if ((row < 3 && board[0][0] == nullptr) || (row>5 && board[0][7] == nullptr)) {
+							blackPnts = blackPnts + 200;
 						}
-						if (col < 2) {
+						if (col < 1) {
 							blackPnts = blackPnts + 50;
 						}
 					}
@@ -212,6 +212,12 @@ void GameState::ScanBoard(bool player) {
 	//reverse black moves
 	if (player == black) {
 		ReverseVector(blackMoveableUnits);
+	}
+	if (whiteKing->hasMoved == true) {
+		blackPnts = blackPnts + 30;
+	}
+	if (blackKing->hasMoved == true) {
+		whitePnts = whitePnts + 30;
 	}
 	if (whiteKingInCheck && whiteMoveableUnits.size() == 0) {
 		blackPnts = 10000;
@@ -229,7 +235,12 @@ void GameState::ScanBoard(bool player) {
 		blackPnts = 0;
 		whitePnts = 0;
 	}
-
+	else if (whiteMoveableUnits.size() == 1 && board[whiteMoveableUnits[0][0]][whiteMoveableUnits[0][1]]->id == 5) {
+		whitePnts = 0;
+	}
+	else if (blackMoveableUnits.size() == 1 && board[blackMoveableUnits[0][0]][blackMoveableUnits[0][1]]->id == 5) {
+		blackPnts = 0;
+	}
 }
 
 void GameState::SetWhiteKingPos(int y, int x) {

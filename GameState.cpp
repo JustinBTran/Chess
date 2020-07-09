@@ -5,6 +5,8 @@
 #include <mutex>
 #pragma once
 std::mutex mtx;
+std::mutex accessMoves;
+std::mutex pushBack;
 
 void ReverseVector(vector<array<int, 2>>& arr)
 {
@@ -19,7 +21,7 @@ void ReverseVector(vector<array<int, 2>>& arr)
 		j--;
 	}
 }
-void Swap(array<int, 2> &x, array<int, 2> &y) {
+void Swap(array<int, 2>& x, array<int, 2>& y) {
 	array<int, 2> temp = x;
 	x[0] = y[0];
 	x[1] = y[1];
@@ -30,8 +32,8 @@ void Swap(array<int, 2> &x, array<int, 2> &y) {
 void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high) {
 	if (low < high) {
 		int pi = partition(arr, low, high);
-		sortUnitsBottomUp(arr,low,pi-1);
-		sortUnitsBottomUp(arr,pi+1,high);
+		sortUnitsBottomUp(arr, low, pi - 1);
+		sortUnitsBottomUp(arr, pi + 1, high);
 	}
 
 }
@@ -39,13 +41,13 @@ void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high) {
 int partition(vector<array<int, 2>>& arr, int low, int high) {
 	int pivot = arr[high][0];
 	int i = low - 1;
-	for (int j = low; j <= high - 1;j++) {
+	for (int j = low; j <= high - 1; j++) {
 		if (arr[j][0] <= pivot) {
 			i++;
-			Swap(arr[i],arr[j]);
+			Swap(arr[i], arr[j]);
 		}
 	}
-	Swap(arr[i+1], arr[high]);
+	Swap(arr[i + 1], arr[high]);
 	return (i + 1);
 
 }
@@ -126,28 +128,32 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 		for (int col = x_lowLim; col <= x_upLim; col++) {
 			if (board[row][col] != nullptr) {
 				Piece* test = board[row][col];
-				mtx.lock();
-				board[row][col]->moves = board[row][col]->getMoves(*this, row, col);
-				mtx.unlock();
+				accessMoves.lock();
+				//board[row][col]->moves = board[row][col]->getMoves(*this, row, col);
+				board[row][col]->getMoves(*this, row, col);
+				accessMoves.unlock();
 				//If the piece have moves it can do, add it to (player)MoveableUnites
 				if (board[row][col]->color == white) {
 					if (board[row][col]->moves.size() > 0) {
-						mtx.lock();
+						accessMoves.lock();
+						//pushBack.lock();
 						whiteMoveableUnits.push_back({ row,col });
-						mtx.unlock();
+						//pushBack.unlock();
+						accessMoves.unlock();
+						
 					}
 				}
 				else if (board[row][col]->color == black) {
 					if (board[row][col]->moves.size() > 0) {
-						mtx.lock();
+						accessMoves.lock();
+						//pushBack.lock();
 						blackMoveableUnits.push_back({ row,col });
-						mtx.unlock();
+						//pushBack.unlock();
+						accessMoves.unlock();
 					}
 				}
-				
-
 				//if it is blacks' turn, pawns on row 3 are no longer enpassant-able
-				
+
 				if (player == black && row == 3) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
@@ -168,13 +174,17 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					if (board[row][col]->color == white) {
 						localWhitePnts = localWhitePnts + 100;
 						//localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
+						//accessMoves.lock();
 						localWhitePnts = localWhitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						//accessMoves.unlock();
 						localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr;
 					}
 					else if (board[row][col]->color == black) {
 						localBlackPnts += 100;
 						//localBlackPnts += board[row][col]->moves.size() * movePnts;
+						//accessMoves.lock();
 						localBlackPnts = localBlackPnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						//accessMoves.unlock();
 						localBlackPnts = localBlackPnts + row * pwnAdvncmntFctr;
 					}
 					break;
@@ -192,12 +202,16 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					if (board[row][col]->color == white) {
 						localWhitePnts = localWhitePnts + 300;
 						//localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
+						//accessMoves.lock();
 						localWhitePnts = localWhitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						//accessMoves.unlock();
 					}
 					else if (board[row][col]->color == black) {
 						localBlackPnts = localBlackPnts + 300;
 						//localBlackPnts += board[row][col]->moves.size() * movePnts;
+						//accessMoves.lock();
 						localBlackPnts += board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						//accessMoves.unlock();
 					}
 					break;
 				case 3:
@@ -223,7 +237,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 				case 5:
 					if (board[row][col]->color == white) {
 						if ((col < 3 && board[7][0] == nullptr) || (col > 5 && board[7][7] == nullptr)) {
-							localWhitePnts = localWhitePnts + 150;
+							localWhitePnts = localWhitePnts + 100;
 						}
 						if (row > 6) {
 							localWhitePnts = localWhitePnts + 50;
@@ -231,7 +245,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					}
 					else if (board[row][col]->color == black) {
 						if ((col < 3 && board[0][0] == nullptr) || (col > 5 && board[0][7] == nullptr)) {
-							localBlackPnts = localBlackPnts + 150;
+							localBlackPnts = localBlackPnts + 100;
 						}
 						if (row < 1) {
 							localBlackPnts = localBlackPnts + 50;
@@ -251,28 +265,24 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 void GameState::ScanBoard(bool player) {
 	bool black = false;
 	bool white = true;
-	Pawn* pawn;
 	whiteMoveableUnits = {};
 	blackMoveableUnits = {};
 	blackPnts = 0;
 	whitePnts = 0;
-	//track to see if players lost their king
-	bool hasBlackKing = false;
-	bool hasWhiteKing = false;
 	King* blackKing = dynamic_cast<King*>(board[blackKingY][blackKingX]);
 	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
-	bool blackKingInCheck = blackKing->inCheck(*this,blackKingY,blackKingX);
-	bool whiteKingInCheck = whiteKing->inCheck(*this,whiteKingY,whiteKingX);
-	
-	//std::thread first(&GameState::subScan,this,player,0,7,0,3);
-	//std::thread second(&GameState::subScan, this, player, 0, 7, 4, 7);
-	//std::thread third(&GameState::subScan, this, player, 0, 7, 4, 5);
+	bool blackKingInCheck = blackKing->inCheck(*this, blackKingY, blackKingX);
+	bool whiteKingInCheck = whiteKing->inCheck(*this, whiteKingY, whiteKingX);
+
+	/*std::thread first(&GameState::subScan,this,player,0,7,0,2);
+	std::thread second(&GameState::subScan, this, player, 0, 7, 3, 5);
+	std::thread third(&GameState::subScan, this, player, 0, 7, 6, 7);
 	//std::thread fourth(&GameState::subScan, this, player, 0, 7, 6, 7);
-	//first.join();
-	//second.join();
-	//third.join();
-	//fourth.join();
-	subScan(player,0,7,0,3);
+	first.join();
+	second.join();
+	third.join();
+	//fourth.join();*/
+	subScan(player, 0, 7, 0, 3);
 	subScan(player, 0, 7, 4, 7);
 
 

@@ -4,6 +4,10 @@
 #include <vector>
 
 void ReverseVector(vector<array<int, 2>>& arr);
+void Swap(array<int, 2> &x, array<int, 2> &y);
+void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high);
+int partition(vector<array<int, 2>>& arr, int low, int high);
+
 
 class GameState {
 
@@ -22,6 +26,7 @@ public:
 
 
 	void PrintBoard();
+	void subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, int x_upLim);
 	void ScanBoard(bool player);
 	void SetWhiteKingPos(int y, int x);
 	void SetBlackKingPos(int y, int x);

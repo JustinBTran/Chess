@@ -1,8 +1,10 @@
 #include "GameState.h"
 #include <iostream>
 #include <string>
-
+#include <thread>
+#include <mutex>
 #pragma once
+std::mutex mtx;
 
 void ReverseVector(vector<array<int, 2>>& arr)
 {
@@ -17,6 +19,38 @@ void ReverseVector(vector<array<int, 2>>& arr)
 		j--;
 	}
 }
+void Swap(array<int, 2> &x, array<int, 2> &y) {
+	array<int, 2> temp = x;
+	x[0] = y[0];
+	x[1] = y[1];
+	y[0] = temp[0];
+	y[1] = temp[1];
+}
+
+void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high) {
+	if (low < high) {
+		int pi = partition(arr, low, high);
+		sortUnitsBottomUp(arr,low,pi-1);
+		sortUnitsBottomUp(arr,pi+1,high);
+	}
+
+}
+
+int partition(vector<array<int, 2>>& arr, int low, int high) {
+	int pivot = arr[high][0];
+	int i = low - 1;
+	for (int j = low; j <= high - 1;j++) {
+		if (arr[j][0] <= pivot) {
+			i++;
+			Swap(arr[i],arr[j]);
+		}
+	}
+	Swap(arr[i+1], arr[high]);
+	return (i + 1);
+
+}
+
+
 
 
 void GameState::PrintBoard()
@@ -79,43 +113,41 @@ void GameState::PrintBoard()
 
 }
 
-//get the moves for all pieces, and reset enpassant
-void GameState::ScanBoard(bool player) {
+void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, int x_upLim)
+{
+	Pawn* pawn;
 	bool black = false;
 	bool white = true;
-	Pawn* pawn;
-	whiteMoveableUnits = {};
-	blackMoveableUnits = {};
-	blackPnts = 0;
-	whitePnts = 0;
-	//track to see if players lost their king
-	bool hasBlackKing = false;
-	bool hasWhiteKing = false;
 	int movePnts = 15;
 	int pwnAdvncmntFctr = 20;
-	King* blackKing = dynamic_cast<King*>(board[blackKingY][blackKingX]);
-	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
-	bool blackKingInCheck = blackKing->inCheck(*this,blackKingY,blackKingX);
-	bool whiteKingInCheck = whiteKing->inCheck(*this,whiteKingY,whiteKingX);
-	
-	for (int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
+	int localBlackPnts = 0;
+	int localWhitePnts = 0;
+	for (int row = y_lowLim; row <= y_upLim; row++) {
+		for (int col = x_lowLim; col <= x_upLim; col++) {
 			if (board[row][col] != nullptr) {
 				Piece* test = board[row][col];
+				mtx.lock();
 				board[row][col]->moves = board[row][col]->getMoves(*this, row, col);
+				mtx.unlock();
 				//If the piece have moves it can do, add it to (player)MoveableUnites
 				if (board[row][col]->color == white) {
 					if (board[row][col]->moves.size() > 0) {
+						mtx.lock();
 						whiteMoveableUnits.push_back({ row,col });
+						mtx.unlock();
 					}
 				}
 				else if (board[row][col]->color == black) {
 					if (board[row][col]->moves.size() > 0) {
+						mtx.lock();
 						blackMoveableUnits.push_back({ row,col });
+						mtx.unlock();
 					}
 				}
+				
 
 				//if it is blacks' turn, pawns on row 3 are no longer enpassant-able
+				
 				if (player == black && row == 3) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
@@ -134,83 +166,120 @@ void GameState::ScanBoard(bool player) {
 				switch (board[row][col]->id) {
 				case 0:
 					if (board[row][col]->color == white) {
-						whitePnts = whitePnts + 100;
-						//whitePnts = whitePnts + board[row][col]->moves.size() * movePnts;
-						whitePnts = whitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
-						whitePnts = whitePnts + (7 - row) * pwnAdvncmntFctr;
+						localWhitePnts = localWhitePnts + 100;
+						//localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
+						localWhitePnts = localWhitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr;
 					}
 					else if (board[row][col]->color == black) {
-						blackPnts += 100;
-						//blackPnts += board[row][col]->moves.size() * movePnts;
-						blackPnts = blackPnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
-						blackPnts = blackPnts + row * pwnAdvncmntFctr;
+						localBlackPnts += 100;
+						//localBlackPnts += board[row][col]->moves.size() * movePnts;
+						localBlackPnts = localBlackPnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						localBlackPnts = localBlackPnts + row * pwnAdvncmntFctr;
 					}
 					break;
 				case 1:
 					if (board[row][col]->color == white) {
-						whitePnts = whitePnts + 500;
-						whitePnts = whitePnts + board[row][col]->moves.size() * movePnts;
+						localWhitePnts = localWhitePnts + 500;
+						localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
 					}
 					else if (board[row][col]->color == black) {
-						blackPnts += 500;
-						blackPnts += board[row][col]->moves.size() * movePnts;
+						localBlackPnts += 500;
+						localBlackPnts += board[row][col]->moves.size() * movePnts;
 					}
 					break;
 				case 2:
 					if (board[row][col]->color == white) {
-						whitePnts = whitePnts + 300;
-						//whitePnts = whitePnts + board[row][col]->moves.size() * movePnts;
-						whitePnts = whitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						localWhitePnts = localWhitePnts + 300;
+						//localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
+						localWhitePnts = localWhitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
 					}
 					else if (board[row][col]->color == black) {
-						blackPnts = blackPnts + 300;
-						//blackPnts += board[row][col]->moves.size() * movePnts;
-						blackPnts += board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
+						localBlackPnts = localBlackPnts + 300;
+						//localBlackPnts += board[row][col]->moves.size() * movePnts;
+						localBlackPnts += board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
 					}
 					break;
 				case 3:
 					if (board[row][col]->color == white) {
-						whitePnts = whitePnts + 300;
-						whitePnts = whitePnts + board[row][col]->moves.size() * movePnts;
+						localWhitePnts = localWhitePnts + 300;
+						localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
 					}
 					else if (board[row][col]->color == black) {
-						blackPnts = blackPnts + 300;
-						blackPnts += board[row][col]->moves.size() * movePnts;
+						localBlackPnts = localBlackPnts + 300;
+						localBlackPnts += board[row][col]->moves.size() * movePnts;
 					}
 					break;
 				case 4:
 					if (board[row][col]->color == white) {
-						whitePnts = whitePnts + 900;
-						whitePnts = whitePnts + board[row][col]->moves.size() * movePnts;
+						localWhitePnts = localWhitePnts + 900;
+						localWhitePnts = localWhitePnts + board[row][col]->moves.size() * movePnts;
 					}
 					else if (board[row][col]->color == black) {
-						blackPnts += 900;
-						blackPnts += board[row][col]->moves.size() * movePnts;
+						localBlackPnts += 900;
+						localBlackPnts += board[row][col]->moves.size() * movePnts;
 					}
 					break;
 				case 5:
-					if(board[row][col]->color == white) {
-						if ((row < 3 && board[7][0] == nullptr) || (row>5 && board[7][7] == nullptr)) {
-							whitePnts = whitePnts + 200;
+					if (board[row][col]->color == white) {
+						if ((col < 3 && board[7][0] == nullptr) || (col > 5 && board[7][7] == nullptr)) {
+							localWhitePnts = localWhitePnts + 150;
 						}
-						if(col>6){
-							whitePnts = whitePnts + 50;
+						if (row > 6) {
+							localWhitePnts = localWhitePnts + 50;
 						}
-					}else if (board[row][col]->color == black) {
-						if ((row < 3 && board[0][0] == nullptr) || (row>5 && board[0][7] == nullptr)) {
-							blackPnts = blackPnts + 200;
+					}
+					else if (board[row][col]->color == black) {
+						if ((col < 3 && board[0][0] == nullptr) || (col > 5 && board[0][7] == nullptr)) {
+							localBlackPnts = localBlackPnts + 150;
 						}
-						if (col < 1) {
-							blackPnts = blackPnts + 50;
+						if (row < 1) {
+							localBlackPnts = localBlackPnts + 50;
 						}
 					}
 				}
-
 			}
 		}
 	}
+	mtx.lock();
+	blackPnts = blackPnts + localBlackPnts;
+	whitePnts = whitePnts + localWhitePnts;
+	mtx.unlock();
+}
+
+//get the moves for all pieces, and reset enpassant
+void GameState::ScanBoard(bool player) {
+	bool black = false;
+	bool white = true;
+	Pawn* pawn;
+	whiteMoveableUnits = {};
+	blackMoveableUnits = {};
+	blackPnts = 0;
+	whitePnts = 0;
+	//track to see if players lost their king
+	bool hasBlackKing = false;
+	bool hasWhiteKing = false;
+	King* blackKing = dynamic_cast<King*>(board[blackKingY][blackKingX]);
+	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
+	bool blackKingInCheck = blackKing->inCheck(*this,blackKingY,blackKingX);
+	bool whiteKingInCheck = whiteKing->inCheck(*this,whiteKingY,whiteKingX);
+	
+	//std::thread first(&GameState::subScan,this,player,0,7,0,3);
+	//std::thread second(&GameState::subScan, this, player, 0, 7, 4, 7);
+	//std::thread third(&GameState::subScan, this, player, 0, 7, 4, 5);
+	//std::thread fourth(&GameState::subScan, this, player, 0, 7, 6, 7);
+	//first.join();
+	//second.join();
+	//third.join();
+	//fourth.join();
+	subScan(player,0,7,0,3);
+	subScan(player, 0, 7, 4, 7);
+
+
 	//reverse black moves
 	if (player == black) {
+		//ReverseVector(blackMoveableUnits);
+		sortUnitsBottomUp(blackMoveableUnits, 0, blackMoveableUnits.size() - 1);
 		ReverseVector(blackMoveableUnits);
 	}
 	if (whiteKing->hasMoved == true) {
@@ -306,7 +375,6 @@ int GameState::EnPassant(GameState& state, int y_old, int x_old, int y_new, int 
 	if (state.board[y_new][x_new] == nullptr && x_old != x_new) {
 		delete(state.board[y_old][x_new]);
 		state.board[y_old][x_new] = nullptr;
-		//printf("EN PASSANT KILL");
 		return 1;
 	}
 

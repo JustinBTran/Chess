@@ -237,7 +237,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 							localWhitePnts = localWhitePnts + 100;
 						}
 						if (row > 6) {
-							localWhitePnts = localWhitePnts + 50;
+							localWhitePnts = localWhitePnts + 25;
 						}
 					}
 					else if (board[row][col]->color == black) {
@@ -245,7 +245,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 							localBlackPnts = localBlackPnts + 100;
 						}
 						if (row < 1) {
-							localBlackPnts = localBlackPnts + 50;
+							localBlackPnts = localBlackPnts + 25;
 						}
 					}
 				}

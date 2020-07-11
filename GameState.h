@@ -4,10 +4,9 @@
 #include <vector>
 
 void ReverseVector(vector<array<int, 2>>& arr);
-void Swap(array<int, 2> &x, array<int, 2> &y);
-void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high);
+void swap(array<int, 2> &x, array<int, 2> &y);
+void quicksort(vector<array<int, 2>>& arr, int low, int high);
 int partition(vector<array<int, 2>>& arr, int low, int high);
-
 
 class GameState {
 

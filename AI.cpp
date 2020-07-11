@@ -1,5 +1,6 @@
 #include "AI.h"
 
+
 GameState CopyGameState(GameState state)
 {
 	GameState retState;
@@ -168,7 +169,7 @@ int TreeMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 }
 
 //index 0 is the board value, index 1 is the move, index 2 is the piece to mvoe
-array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool player)
+array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool player, unsigned int kobristKey, TranspositionTable &table)
 {
 	bool white = true;
 	bool black = false;
@@ -180,12 +181,19 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 
 	//if king is dead return worst value for player, need to do before board is scanned
 	if (blkKingPntr == nullptr || blkKingPntr->color == white || blkKingPntr->id != 5) {
-		return{ 9999,0,0 };
+		return{ 99999,-1,-1 };
 	}
 	else if (whtKingPntr == nullptr || whtKingPntr->color == black || whtKingPntr->id != 5) {
-		return { -9999,0,0 };
+		return { -99999,-1,-1 };
 	}
 	state.ScanBoard(player);
+	//return worst value if player is checkmated
+	if (state.blackMoveableUnits.size() == 0) {
+		return{ 99999,-1,-1 };
+	}
+	else if (state.whiteMoveableUnits.size()==0) {
+		return { -99999,-1,-1 };
+	}
 	int value = (state.whitePnts - state.blackPnts);
 	int tempMove = 0;
 	int nextMove = 0;
@@ -194,43 +202,59 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	array<int, 3> data;
 	int enpass = 0;
 	vector<array<int, 2>> unitMoves;
+	unsigned int key = kobristKey;
+	int hash;
 
 	if (depth == 0) {
 		//the move returned here shouldnt matter
 		//printf("\n Depth reached");
-		return { value,0,0 };
+		return { value,-1,-1 };
 	}
 
 	//maximizing player
 	if (player == white) {
-		int maxEval = -9999;
+		int maxEval = -99999;
 		//so that the collection being iterated through does not change
 		vector<array<int, 2>> units = state.whiteMoveableUnits;
+		selectPiece = units[0][0]*10 + units[0][1];
+		array<int,2>baseWhiteMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
+		nextMove = baseWhiteMove[0] * 10 + baseWhiteMove[1];
+		 
 		for (array<int, 2> unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			state.ScanBoard(white);//reset the piece moves
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
 			for (array <int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
-				GameState tempState = CopyGameState(state);
-				enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
-				data = minimax(tempState, depth - 1, alpha, beta, black);
-				if (data[0] > maxEval) {
-					maxEval = data[0];
-					nextMove = tempMove;
-					selectPiece = currPiece;
+				key = kobristKey; // resetKey
+				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
+				hash = table.hashFunction(key);
+				bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
+					data = { table.transposeList[hash]->whiteEval, -1,-1};
 				}
-				//have to delete new pointers from promotions to avoid stack overflow, and others
-				if (enpass == 2) {
-					if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
-						delete(tempState.board[move[0]][move[1]]);
-						tempState.board[move[0]][move[1]] = nullptr;
-						printf("pointer deleted");
+				else {
+					GameState tempState = CopyGameState(state);
+					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
+					data = minimax(tempState, depth - 1, alpha, beta, black, key, table);
+					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depth < depth) {//replace the kobristKey if the depth is better
+						delete(table.transposeList[hash]);
+						table.transposeList[hash] = new Transposition(key, depth, data[0], white);
 					}
-				}
-				else if (enpass == 1) { //reset hasMoved
-					if (tempState.board[move[0]][move[1]] != nullptr) {
-						switch (tempState.board[move[0]][move[1]]->id) {
+					//else if(whiteEval == 10000)
+					else {
+						table.transposeList[hash]->whiteEval = data[0];
+					}
+					//have to delete new pointers from promotions to avoid stack overflow, and others
+					if (enpass == 2) {
+						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
+							delete(tempState.board[move[0]][move[1]]);
+							tempState.board[move[0]][move[1]] = nullptr;
+						}
+					}
+					else if (enpass == 1) { //reset hasMoved
+						if (tempState.board[move[0]][move[1]] != nullptr) {
+							switch (tempState.board[move[0]][move[1]]->id) {
 							case 0:
 								pawn = dynamic_cast<Pawn*>(tempState.board[move[0]][move[1]]);
 								pawn->SetHasMoved(false);
@@ -243,22 +267,27 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 								king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
 								king->hasMoved = false;
 								break;
+							}
+
 						}
-						
+					}
+					else if (enpass == 3) {// reset hasMoved for castling
+						king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
+						king->hasMoved = false;
+						if (move[1] == 2) {
+							rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] + 1]);
+							rook->hasMoved = false;
+						}
+						else if (move[1] == 6) {
+							rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] - 1]);
+							rook->hasMoved = false;
+						}
 					}
 				}
-				else if (enpass == 3) {// reset hasMoved for castling
-					king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
-					king->hasMoved = false;
-					if (move[1] == 2) {
-						rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] + 1]);
-						rook->hasMoved = false;
-					}
-					else if (move[1] == 6) {
-						rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] - 1]);
-						rook->hasMoved = false;
-					}
-
+				if (data[0] > maxEval) {
+					maxEval = data[0];
+					nextMove = tempMove;
+					selectPiece = currPiece;
 				}
 				if (data[0] > alpha) {
 					alpha = data[0];
@@ -274,66 +303,80 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		return { maxEval, nextMove,selectPiece };
 	}
 	else {
-		int minEval = 9999;
+		int minEval = 99999;
 		vector<array<int, 2>> units = state.blackMoveableUnits;
+		selectPiece = units[0][0] * 10 + units[0][1];
+		array<int, 2>baseBlackMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
+		nextMove = baseBlackMove[0] * 10 + baseBlackMove[1];
 		for (array<int, 2>unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			state.ScanBoard(black);//reset the piece moves
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
 			for (array<int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
-				GameState tempState = CopyGameState(state);
-				enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
-				data = minimax(tempState, depth - 1, alpha, beta, white);
-				if (data[0] < minEval) {
-					minEval = data[0];
-					nextMove = tempMove;
-					selectPiece = currPiece;
-					//Delete later
-					/*if (depth == 3) {
-						printf("depth = %d: %d should go to %d\n", depth,selectPiece, nextMove);
-					}*/
-					//printf("%d should go to %d\n", selectPiece, nextMove);
+				key = kobristKey; // resetKey
+				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
+				hash = table.hashFunction(key);
+				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000);
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
+					data = { table.transposeList[hash]->blackEval, -1,-1 };
 				}
-				//have to delete new pointers from promotions to avoid stack overflow
-				if (enpass == 2) {
-					if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
-						delete(tempState.board[move[0]][move[1]]);
-						tempState.board[move[0]][move[1]] = nullptr;
-						printf("pointer deleted");
+				else {
+					GameState tempState = CopyGameState(state);
+					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
+					data = minimax(tempState, depth - 1, alpha, beta, white, key, table);
+					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depth < depth) {//replace the kobristKey if the depth is better
+						delete(table.transposeList[hash]);
+						table.transposeList[hash] = new Transposition(key, depth, data[0], black);
 					}
-				}
-				else if (enpass == 1) { //reset hasMoved
-					if (tempState.board[move[0]][move[1]] != nullptr) {
-						switch (tempState.board[move[0]][move[1]]->id) {
-						case 0:
-							pawn = dynamic_cast<Pawn*>(tempState.board[move[0]][move[1]]);
-							pawn->SetHasMoved(false);
-							break;
-						case 1:
-							rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1]]);
-							rook->SetHasMoved(false);
-							break;
-						case 5:
-							king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
-							king->hasMoved = false;
-							break;
+					//else if(blackEval == 10000)
+					else {
+						table.transposeList[hash]->blackEval = data[0];
+					}
+					//have to delete new pointers from promotions to avoid stack overflow
+					if (enpass == 2) {
+						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
+							delete(tempState.board[move[0]][move[1]]);
+							tempState.board[move[0]][move[1]] = nullptr;
+						}
+					}
+					else if (enpass == 1) { //reset hasMoved
+						if (tempState.board[move[0]][move[1]] != nullptr) {
+							switch (tempState.board[move[0]][move[1]]->id) {
+							case 0:
+								pawn = dynamic_cast<Pawn*>(tempState.board[move[0]][move[1]]);
+								pawn->SetHasMoved(false);
+								break;
+							case 1:
+								rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1]]);
+								rook->SetHasMoved(false);
+								break;
+							case 5:
+								king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
+								king->hasMoved = false;
+								break;
+							}
+
+						}
+					}
+					else if (enpass == 3) {// reset hasMoved for castling
+						king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
+						king->hasMoved = false;
+						if (move[1] == 2) {
+							rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] + 1]);
+							rook->hasMoved = false;
+						}
+						else if (move[1] == 6) {
+							rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] - 1]);
+							rook->hasMoved = false;
 						}
 
 					}
 				}
-				else if (enpass == 3) {// reset hasMoved for castling
-					king = dynamic_cast<King*>(tempState.board[move[0]][move[1]]);
-					king->hasMoved = false;
-					if (move[1] == 2) {
-						rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] + 1]);
-						rook->hasMoved = false;
-					}
-					else if (move[1] == 6) {
-						rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1] - 1]);
-						rook->hasMoved = false;
-					}
-
+				if (data[0] < minEval) {
+					minEval = data[0];
+					nextMove = tempMove;
+					selectPiece = currPiece;
 				}
 				if (data[0] < beta) {
 					beta = data[0];

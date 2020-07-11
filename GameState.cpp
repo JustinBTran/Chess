@@ -21,7 +21,7 @@ void ReverseVector(vector<array<int, 2>>& arr)
 		j--;
 	}
 }
-void Swap(array<int, 2>& x, array<int, 2>& y) {
+void swap(array<int, 2>& x, array<int, 2>& y) {
 	array<int, 2> temp = x;
 	x[0] = y[0];
 	x[1] = y[1];
@@ -29,11 +29,11 @@ void Swap(array<int, 2>& x, array<int, 2>& y) {
 	y[1] = temp[1];
 }
 
-void sortUnitsBottomUp(vector<array<int, 2>>& arr, int low, int high) {
+void quicksort(vector<array<int, 2>>& arr, int low, int high) {
 	if (low < high) {
 		int pi = partition(arr, low, high);
-		sortUnitsBottomUp(arr, low, pi - 1);
-		sortUnitsBottomUp(arr, pi + 1, high);
+		quicksort(arr, low, pi - 1);
+		quicksort(arr, pi + 1, high);
 	}
 
 }
@@ -44,16 +44,13 @@ int partition(vector<array<int, 2>>& arr, int low, int high) {
 	for (int j = low; j <= high - 1; j++) {
 		if (arr[j][0] <= pivot) {
 			i++;
-			Swap(arr[i], arr[j]);
+			swap(arr[i], arr[j]);
 		}
 	}
-	Swap(arr[i + 1], arr[high]);
+	swap(arr[i + 1], arr[high]);
 	return (i + 1);
 
 }
-
-
-
 
 void GameState::PrintBoard()
 {
@@ -140,7 +137,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 						whiteMoveableUnits.push_back({ row,col });
 						//pushBack.unlock();
 						accessMoves.unlock();
-						
+
 					}
 				}
 				else if (board[row][col]->color == black) {
@@ -289,8 +286,9 @@ void GameState::ScanBoard(bool player) {
 	//reverse black moves
 	if (player == black) {
 		//ReverseVector(blackMoveableUnits);
-		sortUnitsBottomUp(blackMoveableUnits, 0, blackMoveableUnits.size() - 1);
+		quicksort(blackMoveableUnits, 0, blackMoveableUnits.size() - 1);
 		ReverseVector(blackMoveableUnits);
+		
 	}
 	if (whiteKing->hasMoved == true) {
 		blackPnts = blackPnts + 20;
@@ -315,11 +313,12 @@ void GameState::ScanBoard(bool player) {
 		whitePnts = 0;
 	}
 	else if (whiteMoveableUnits.size() == 1 && board[whiteMoveableUnits[0][0]][whiteMoveableUnits[0][1]]->id == 5) {
-		whitePnts = 0;
+		if (blackMoveableUnits.size() == 1 && board[blackMoveableUnits[0][0]][blackMoveableUnits[0][1]]->id == 5) {
+			blackPnts = 0;
+			whitePnts = 0;
+		}
 	}
-	else if (blackMoveableUnits.size() == 1 && board[blackMoveableUnits[0][0]][blackMoveableUnits[0][1]]->id == 5) {
-		blackPnts = 0;
-	}
+	
 }
 
 void GameState::SetWhiteKingPos(int y, int x) {

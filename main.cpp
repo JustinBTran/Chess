@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include "GameState.h"
 #include "AI.h"
+
+
 bool white = true;
 bool black = false;
 
@@ -252,10 +254,13 @@ int main()
     int x_oldAI;
     sf::Vector2i oppOld(-1,-1);
     sf::Vector2i oppNew(-1, -1);
+    bool rescan = false;
+    
+    gameState.ScanBoard(player);
+    TranspositionTable table = TranspositionTable();
+    unsigned int kobristKey = table.getKobristKey(gameState);
 
     while (window.isOpen()) {
-
-
         //Update mouse positions
         mousePosScreen = sf::Mouse::getPosition();
         mousePosWindow = sf::Mouse::getPosition(window);
@@ -281,11 +286,13 @@ int main()
                     tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
                 }
                 if (select.x != -1) { // check if a piece is already selected
-                    vector<array<int, 2>>moves = gameState.board[select.y][select.x]->getMoves(gameState, select.y, select.x);
+                    vector<array<int, 2>>moves = gameState.board[select.y][select.x]->moves;
                     if (std::find(moves.begin(), moves.end(), std::array<int, 2>{ (int)mousePosGrid.y, (int)mousePosGrid.x }) != moves.end()) {
                         //printf("move");
+                        kobristKey = table.updateKobristKey(gameState, kobristKey, select.y, select.x, mousePosGrid.y, mousePosGrid.x);
                         gameState.whiteMove(gameState, select.y, select.x, mousePosGrid.y, mousePosGrid.x);
                         didMove = true;
+                        rescan = true;
                         //recolor red tiles
                         if (oppOld.x != -1) {
                             tileMap[oppOld.x][oppOld.y].setFillColor(ResetTileColor(oppOld.y,oppOld.x));
@@ -343,21 +350,21 @@ int main()
             }
         }
         //Check for win/loss
-        gameState.ScanBoard(player);
-        if (gameState.blackMoveableUnits.size() == 0 && gameState.whiteMoveableUnits.size() == 0) {
-            Win(window, white, true);
-            game = false;
-            
-        }
-        else if (gameState.blackMoveableUnits.size() == 0) {
-            Win(window, white,false);
-            game = false;
-           
-        }
-        else if (gameState.whiteMoveableUnits.size() == 0) {
-            Win(window, black,false);
-            game = false;
-            
+        if (rescan) {
+            gameState.ScanBoard(player);
+            rescan = false;
+            if (gameState.blackMoveableUnits.size() == 0 && gameState.whiteMoveableUnits.size() == 0) {
+                Win(window, white, true);
+                game = false;
+            }
+            else if (gameState.blackMoveableUnits.size() == 0) {
+                Win(window, white, false);
+                game = false;
+            }
+            else if (gameState.whiteMoveableUnits.size() == 0) {
+                Win(window, black, false);
+                game = false;
+            }
         }
 
         window.draw(tileSelector);
@@ -387,12 +394,13 @@ int main()
 
         if (didMove) {
             gameState.ScanBoard(!player);
-            data = minimax(gameState, 3, -9999, 9999, !player);
+            data = minimax(gameState, 3, -9999, 9999, !player, kobristKey, table);
             if (data[1] != -1) {
                 y_newAI = data[1] / 10;
                 x_newAI = data[1] % 10;
                 y_oldAI = data[2] / 10;
                 x_oldAI = data[2] % 10;
+                kobristKey = table.updateKobristKey(gameState, kobristKey, y_oldAI, x_oldAI, y_newAI, x_newAI);
 
                 AIMove(gameState, y_oldAI, x_oldAI, y_newAI, x_newAI);
                 didMove = false;
@@ -402,9 +410,11 @@ int main()
                 oppOld.x = x_oldAI;
                 tileMap[oppOld.x][oppOld.y].setFillColor(sf::Color::Red);
                 tileMap[oppNew.x][oppNew.y].setFillColor(sf::Color::Red);
+                
             }
-            
+            rescan = true;
         }
+       
 
     }
 

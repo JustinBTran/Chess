@@ -229,21 +229,22 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 				key = kobristKey; // resetKey
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
-				bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
-				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
+				bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
 					data = { table.transposeList[hash]->whiteEval, -1,-1};
 				}
 				else {
 					GameState tempState = CopyGameState(state);
 					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
 					data = minimax(tempState, depth - 1, alpha, beta, black, key, table);
-					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depth < depth) {//replace the kobristKey if the depth is better
+					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthW < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth, data[0], white);
 					}
 					//else if(whiteEval == 10000)
 					else {
 						table.transposeList[hash]->whiteEval = data[0];
+						table.transposeList[hash]->depthW = depth;
 					}
 					//have to delete new pointers from promotions to avoid stack overflow, and others
 					if (enpass == 2) {
@@ -314,30 +315,31 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
 			for (array<int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
-				if (depth == 3 && tempMove == 35 && currPiece == 25) {
+			/*	if (depth == 3 && tempMove == 35 && currPiece == 25) {
 					printf("right move");
 				}
 				else if (depth == 3 && tempMove == 22 && currPiece == 1) {
 					printf("wrong move");
-				}
+				}*/
 				key = kobristKey; // resetKey
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
 				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000);
-				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthB >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
 					data = { table.transposeList[hash]->blackEval, -1,-1 };
 				}
 				else {
 					GameState tempState = CopyGameState(state);
 					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
 					data = minimax(tempState, depth - 1, alpha, beta, white, key, table);
-					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depth < depth) {//replace the kobristKey if the depth is better
+					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthB < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth, data[0], black);
 					}
 					//else if(blackEval == 10000)
 					else {
 						table.transposeList[hash]->blackEval = data[0];
+						table.transposeList[hash]->depthB = depth;
 					}
 					//have to delete new pointers from promotions to avoid stack overflow
 					if (enpass == 2) {

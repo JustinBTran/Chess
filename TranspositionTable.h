@@ -6,19 +6,21 @@ class Transposition {
 public:
 	Transposition(unsigned int key, int d, int eval, bool color) {
 		zobristKey = key;
-		depth = d;
 		if (color == true) {
 			whiteEval = eval;
 			blackEval = 100000; //invalid int
+			depthW = d;
 
 		}
 		else {
 			blackEval = eval;
 			whiteEval = 100000;
+			depthB = d;
 		}
 	}
 	unsigned int zobristKey;
-	int depth;
+	int depthW;
+	int depthB;
 	int whiteEval;
 	int blackEval;
 };

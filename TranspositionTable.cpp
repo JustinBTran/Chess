@@ -8,7 +8,7 @@ unsigned int TranspositionTable::getKey(int row, int col, int id, bool booln, bo
 	int idx2;
 	switch (id) {
 	case -1:
-		idx2 = 12;//empty
+		idx2 = 12;//nullptr
 		break;
 	case 0:
 		if (color == true) {
@@ -31,10 +31,10 @@ unsigned int TranspositionTable::getKey(int row, int col, int id, bool booln, bo
 		else {
 			idx2 = 7;
 		}
-		if (color == true && row == 7 && (col == 0 || col == 7 && !booln)) {
+		if (color == true && row == 7 && (col == 0 || col == 7) && !booln) {
 			idx2 = 13;
 		}
-		else if (color == false && row == 0 && (col == 0 || col == 7 && !booln)) {
+		else if (color == false && row == 0 && (col == 0 || col == 7) && !booln) {
 			idx2 = 13;
 		}
 		break;

@@ -150,15 +150,14 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					}
 				}
 				//if it is blacks' turn, pawns on row 3 are no longer enpassant-able
-
-				if (player == black && row == 3) {
+				if (row == 3 && player == black) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
 						pawn->SetEnPassant(false);
 					}
 				}
 				//if it is whites' turn, pawns on row 4 are no longer enpassant-able
-				if (player == white && row == 4) {
+				if (row == 4  && player == white) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
 						pawn->SetEnPassant(false);
@@ -266,10 +265,28 @@ void GameState::ScanBoard(bool player) {
 	blackMoveableUnits = {};
 	blackPnts = 0;
 	whitePnts = 0;
+	Pawn* pawn;
 	King* blackKing = dynamic_cast<King*>(board[blackKingY][blackKingX]);
 	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
 	bool blackKingInCheck = blackKing->inCheck(*this, blackKingY, blackKingX);
 	bool whiteKingInCheck = whiteKing->inCheck(*this, whiteKingY, whiteKingX);
+
+	/*if (player == black) {
+		for (int i = 0; i < 8; i++) {
+			if (board[3][i] != nullptr && board[3][i]->id == 0) {
+				pawn = dynamic_cast<Pawn*>(board[3][i]);
+				pawn->SetEnPassant(false);
+			}
+		}
+	}
+	else if (player == white) {
+		for (int i = 0; i < 8; i++) {
+			if (board[4][i] != nullptr && board[4][i] == 0) {
+				pawn = dynamic_cast<Pawn*>(board[4][i]);
+				pawn->SetEnPassant(false);
+			}
+		}
+	}*/
 
 	/*std::thread first(&GameState::subScan,this,player,0,7,0,2);
 	std::thread second(&GameState::subScan, this, player, 0, 7, 3, 5);

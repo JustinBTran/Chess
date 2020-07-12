@@ -314,6 +314,12 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
 			for (array<int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
+				if (depth == 3 && tempMove == 35 && currPiece == 25) {
+					printf("right move");
+				}
+				else if (depth == 3 && tempMove == 22 && currPiece == 1) {
+					printf("wrong move");
+				}
 				key = kobristKey; // resetKey
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);

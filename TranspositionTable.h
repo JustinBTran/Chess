@@ -32,7 +32,7 @@ public:
 				keys[i][j] = (unsigned int) rand() % 4294967295;
 			}
 			//enpassant
-			if ((i > 7 && i < 16) || (i < 55 && i>47)) {
+			if ((i > 23 && i < 32) || (i <= 39 && i>=32)) {// enpassant
 				keys[i][13] = (unsigned int)rand() % 4294967295;
 			}
 			else if (i == 0) {

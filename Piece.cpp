@@ -3,7 +3,7 @@
 #pragma once
 
 //Filter out all non safe moves. Y and X and the pieces current position
-vector<array<int, 2>> fltrMoves(GameState state, vector<array<int, 2>> moves, int y, int x)
+vector<array<int, 2>> fltrMoves(GameState &state, vector<array<int, 2>> moves, int y, int x)
 {
 	vector<array<int, 2>> fltr;
 	for (auto move : moves) {
@@ -20,7 +20,7 @@ void Rook::SetHasMoved(bool moved) {
 	hasMoved = moved;
 }
 
-vector<array <int,2>> Rook::getMoves(GameState state, int y, int x)
+vector<array <int,2>> Rook::getMoves(GameState &state, int y, int x)
 {
 	vector<array<int,2>> moves;
 	//get all moves vertically downwards(col 0->7)
@@ -101,7 +101,7 @@ void Pawn::SetEnPassant(bool enpassant)
 	enPassant = enpassant;
 }
 
-vector<array<int, 2>> Pawn::getMoves(GameState state, int y, int x)
+vector<array<int, 2>> Pawn::getMoves(GameState &state, int y, int x)
 {
 	bool white = true;
 	bool black = false;
@@ -210,7 +210,7 @@ vector<array<int, 2>> Pawn::getMoves(GameState state, int y, int x)
 	return fltrd;
 }
 
-vector<array<int, 2>> Knight::getMoves(GameState state, int y, int x)
+vector<array<int, 2>> Knight::getMoves(GameState& state, int y, int x)
 {
 	vector<array<int, 2>>moves;
 
@@ -268,7 +268,7 @@ vector<array<int, 2>> Knight::getMoves(GameState state, int y, int x)
 	return fltrd;
 }
 
-vector<array<int, 2>> Bishop::getMoves(GameState state, int y, int x)
+vector<array<int, 2>> Bishop::getMoves(GameState &state, int y, int x)
 {
 	vector<array<int, 2>> moves;
 	
@@ -350,7 +350,7 @@ vector<array<int, 2>> Bishop::getMoves(GameState state, int y, int x)
 	return fltrd;
 }
 
-vector<array<int, 2>> Queen::getMoves(GameState state, int y, int x)
+vector<array<int, 2>> Queen::getMoves(GameState& state, int y, int x)
 {
 	vector<array<int, 2>> moves;
 	//get all moves vertically downwards(col 0->7)
@@ -744,7 +744,7 @@ bool King::inCheck(GameState state, int y, int x)
 	return false;
 }
 
-vector<array<int, 2>> King::getMoves(GameState state, int y, int x)
+vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 {
 	bool white = true;
 	bool black = false;

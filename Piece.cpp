@@ -491,7 +491,7 @@ vector<array<int, 2>> Queen::getMoves(GameState& state, int y, int x)
 }
 
 //See if king is in check
-bool King::inCheck(GameState state, int y, int x)
+bool King::inCheck(GameState &state, int y, int x)
 {
 	bool white = true;
 	bool black = false;
@@ -858,7 +858,7 @@ vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 	return fltrd;
 }
 
-vector<array<int, 2>> Piece::getAttackingMoves(GameState state, int y, int x)
+vector<array<int, 2>> Piece::getAttackingMoves(GameState &state, int y, int x)
 {
 	vector<array<int, 2>>moves = {};
 	if (state.board[y][x]->id == 0) {

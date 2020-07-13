@@ -222,6 +222,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	int enpass = 0;
 	vector<array<int, 2>> unitMoves;
 	int hash;
+	int idx = -1;
 
 	if (depth == 0) {
 		//the move returned here shouldnt matter
@@ -237,14 +238,19 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0]*10 + units[0][1];
 		array<int,2>baseWhiteMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseWhiteMove[0] * 10 + baseWhiteMove[1];
-		vector<vect>
+		vector<vector<array<int, 2>>> whiteMoves;
+		for (array<int, 2> unit : units) {
+			whiteMoves.push_back(state.board[unit[0]][unit[1]]->moves);
+		}
 		for (array<int, 2> unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
-			state.ScanBoard(white);//reset the piece moves
+			//state.ScanBoard(white);//reset the piece moves
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
-			for (array <int, 2> move : unitMoves) {
+			idx++;
+			//for (array <int, 2> move : unitMoves) {
+			for(array<int,2> move: whiteMoves[idx]){
 				tempMove = move[0] * 10 + move[1];
-				key = kobristKey; // resetKey
+				//key = kobristKey; // resetKey
 				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
@@ -267,7 +273,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					}
 					//have to delete new pointers from promotions to avoid stack overflow, and others
 					if (enpass == 2) {
-						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
+						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 4) {
 							delete(tempState.board[move[0]][move[1]]);
 							tempState.board[move[0]][move[1]] = nullptr;
 						}
@@ -334,13 +340,19 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0] * 10 + units[0][1];
 		array<int, 2>baseBlackMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseBlackMove[0] * 10 + baseBlackMove[1];
+		vector<vector<array<int, 2>>> blackMoves;
+		for (array<int, 2> unit : units) {
+			blackMoves.push_back(state.board[unit[0]][unit[1]]->moves);
+		}
 		for (array<int, 2>unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
-			state.ScanBoard(black);//reset the piece moves
+			//state.ScanBoard(black);//reset the piece moves
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
-			for (array<int, 2> move : unitMoves) {
+			idx++;
+			//for (array <int, 2> move : unitMoves) {
+			for (array<int, 2> move : blackMoves[idx]) {
 				tempMove = move[0] * 10 + move[1];
-				key = kobristKey; // resetKey
+				//key = kobristKey; // resetKey
 				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
@@ -363,7 +375,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					}
 					//have to delete new pointers from promotions to avoid stack overflow
 					if (enpass == 2) {
-						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 5) {
+						if (tempState.board[move[0]][move[1]] != nullptr && tempState.board[move[0]][move[1]]->id == 4) {
 							delete(tempState.board[move[0]][move[1]]);
 							tempState.board[move[0]][move[1]] = nullptr;
 						}

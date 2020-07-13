@@ -16,7 +16,7 @@ public:
 	int id;
 	virtual vector<array<int,2>> getMoves(GameState &state, int x, int y) = 0;
 	vector<array<int, 2>> moves;
-	vector<array<int, 2>> getAttackingMoves(GameState state, int y, int x);
+	vector<array<int, 2>> getAttackingMoves(GameState &state, int y, int x);
 	
 };
 
@@ -77,7 +77,7 @@ public:
 		hasMoved = false;
 	}
 	bool hasMoved;
-	bool inCheck(GameState state, int y, int x);
+	bool inCheck(GameState &state, int y, int x);
 	vector<array<int, 2>> getMoves(GameState &state, int y, int x);
 };
 

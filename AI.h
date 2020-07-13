@@ -4,7 +4,7 @@
 
 #pragma once
 
-GameState CopyGameState(GameState state);
+GameState CopyGameState(GameState &state);
 //vector<array<int, 2>> arrangeMoveableUnits(GameState state, vector < array<int, 2>> units);
 int TreePromote(GameState& state, int y, int x, string unitChar);
 int TreeMove(GameState &state, int y_old, int x_old, int y_new, int x_new);

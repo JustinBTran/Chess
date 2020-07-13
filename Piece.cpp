@@ -719,7 +719,7 @@ bool King::inCheck(GameState &state, int y, int x)
 	
 	if (color == white) {
 		//top left
-		if (y - 1 >= 0 && x - 1 >= 0 && state.board[y - 1][x - 1] != NULL) {
+		if (y - 1 >= 0 && x - 1 >= 0 && state.board[y - 1][x - 1] != nullptr) {
 			if (state.board[y - 1][x - 1]->color == black) {
 				if (state.board[y - 1][x - 1]->id == 0) { return true; }
 			}
@@ -733,12 +733,17 @@ bool King::inCheck(GameState &state, int y, int x)
 	}
 	else {
 		//bottom left
-		if (y + 1 < 8 && x - 1 >= 0 && state.board[y + 1][x - 1] != NULL) {
+		if (y + 1 < 8 && x - 1 >= 0 && state.board[y + 1][x - 1] != nullptr) {
 			if (state.board[y + 1][x - 1]->color == white) {
 				if (state.board[y + 1][x - 1]->id == 0) { return true; }
 			}
 		}
 		//bottom right
+		if (y + 1 < 8 && x + 1 < 8 && state.board[y + 1][x + 1] != nullptr) {
+			if (state.board[y + 1][x + 1]->color == white) {
+				if (state.board[y + 1][x + 1]->id == 0) { return true; }
+			}
+		}
 	}
 	
 	return false;

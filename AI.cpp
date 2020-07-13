@@ -178,6 +178,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	Pawn* pawn;
 	Rook* rook;
 	King* king;
+	unsigned int key = kobristKey;
 
 	//if king is dead return worst value for player, need to do before board is scanned
 	if (blkKingPntr == nullptr || blkKingPntr->color == white || blkKingPntr->id != 5) {
@@ -186,6 +187,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	else if (whtKingPntr == nullptr || whtKingPntr->color == black || whtKingPntr->id != 5) {
 		return { -99999,-1,-1 };
 	}
+	unsigned int stateKey = table.updateKobristEnpassant(state.board, kobristKey, player);
 	state.ScanBoard(player);
 	//return worst value if player is checkmated
 	if (state.blackMoveableUnits.size() == 0) {
@@ -202,7 +204,6 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	array<int, 3> data;
 	int enpass = 0;
 	vector<array<int, 2>> unitMoves;
-	unsigned int key = kobristKey;
 	int hash;
 
 	if (depth == 0) {
@@ -227,6 +228,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 			for (array <int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
 				key = kobristKey; // resetKey
+				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
 				bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
@@ -259,6 +261,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 							case 0:
 								pawn = dynamic_cast<Pawn*>(tempState.board[move[0]][move[1]]);
 								pawn->SetHasMoved(false);
+								pawn->enPassant = false;
 								break;
 							case 1:
 								rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1]]);
@@ -315,13 +318,8 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 			unitMoves = state.board[unit[0]][unit[1]]->moves;
 			for (array<int, 2> move : unitMoves) {
 				tempMove = move[0] * 10 + move[1];
-			/*	if (depth == 3 && tempMove == 35 && currPiece == 25) {
-					printf("right move");
-				}
-				else if (depth == 3 && tempMove == 22 && currPiece == 1) {
-					printf("wrong move");
-				}*/
 				key = kobristKey; // resetKey
+				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
 				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000);
@@ -354,6 +352,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 							case 0:
 								pawn = dynamic_cast<Pawn*>(tempState.board[move[0]][move[1]]);
 								pawn->SetHasMoved(false);
+								pawn->enPassant = false;
 								break;
 							case 1:
 								rook = dynamic_cast<Rook*>(tempState.board[move[0]][move[1]]);

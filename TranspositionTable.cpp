@@ -21,7 +21,7 @@ unsigned int TranspositionTable::getKey(int row, int col, int id, bool booln, bo
 			idx2 = 13;//special case
 		}
 		else if (color == false && row == 3 && booln) {
-
+			idx2 = 13;
 		}
 		break;
 	case 1:
@@ -45,7 +45,6 @@ unsigned int TranspositionTable::getKey(int row, int col, int id, bool booln, bo
 		else {
 			idx2 = 8;
 		}
-		break;
 		break;
 	case 3:
 		if (color == true) {
@@ -192,7 +191,7 @@ unsigned int TranspositionTable::updateKobristKey(GameState state, unsigned int 
 		//check for enpassant
 		if (newPos == nullptr && x_old != x_new) {
 			Pawn* deadPawn = dynamic_cast<Pawn*>(state.board[y_old][x_new]);
-			key = key ^ getKey(y_old,x_new, 0, deadPawn->hasMoved, deadPawn->color);
+			key = key ^ getKey(y_old,x_new, 0, deadPawn->enPassant, deadPawn->color);
 			key = key ^ getKey(y_old,x_new, -1, false, false);
 		}
 	}
@@ -228,7 +227,6 @@ unsigned int TranspositionTable::updateKobristKey(GameState state, unsigned int 
 				key = key ^ getKey(0, 3, -1, false, false);
 				key = key ^ getKey(0, 3, 1, true, false);
 			}
-
 		}
 	}
 
@@ -240,4 +238,33 @@ unsigned int TranspositionTable::updateKobristKey(GameState state, unsigned int 
 int TranspositionTable::hashFunction(unsigned int kobristKey)
 {
 	return ((unsigned int) kobristKey)%1000;
+}
+
+unsigned int TranspositionTable::updateKobristEnpassant(Piece* board[8][8], unsigned int key, bool player)
+{
+	unsigned int retKey = key;
+	Pawn* pawn;
+	if (player == true) {
+		for (int i = 0; i < 8; i++) {
+			if (board[4][i] != nullptr && board[4][i]->id == 0 && board[4][i]->color == true) {
+				pawn = dynamic_cast<Pawn*>(board[4][i]);
+				if (pawn->enPassant) {
+					retKey = retKey ^ getKey(4, i, 0, true, true);
+					retKey = retKey ^ getKey(4, i, 0, false, true);
+				}
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < 8; i++) {
+			if (board[3][i] != nullptr && board[3][i]->id == 0 && board[3][i]->color == false) {
+				pawn = dynamic_cast<Pawn*>(board[3][i]);
+				if (pawn->enPassant) {
+					retKey = retKey ^ getKey(3, i, 0, true, false);
+					retKey = retKey ^ getKey(3, i, 0, false, false);
+				}
+			}
+		}
+	}
+	return retKey;
 }

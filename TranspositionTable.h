@@ -66,5 +66,6 @@ public:
 	unsigned int getKobristKey(GameState state);
 	unsigned int updateKobristKey(GameState state, unsigned int kobristKey, int y_old, int x_old, int y_new, int x_new);
 	int hashFunction(unsigned int kobristKey);
+	unsigned int updateKobristEnpassant(Piece* board[8][8], unsigned int key, bool player);
 };
 

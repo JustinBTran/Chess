@@ -351,6 +351,7 @@ int main()
         }
         //Check for win/loss
         if (rescan) {
+            kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, player);
             gameState.ScanBoard(player);
             rescan = false;
             if (gameState.blackMoveableUnits.size() == 0 && gameState.whiteMoveableUnits.size() == 0) {
@@ -393,6 +394,7 @@ int main()
         }
 
         if (didMove) {
+            kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
             data = minimax(gameState, 3, -9999, 9999, !player, kobristKey, table);
             if (data[1] != -1) {

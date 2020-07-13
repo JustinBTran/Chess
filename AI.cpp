@@ -1,7 +1,7 @@
 #include "AI.h"
 
 
-GameState CopyGameState(GameState state)
+GameState CopyGameState(GameState &state)
 {
 	GameState retState;
 	retState.SetBoard(state.board);
@@ -237,6 +237,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0]*10 + units[0][1];
 		array<int,2>baseWhiteMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseWhiteMove[0] * 10 + baseWhiteMove[1];
+		vector<vect>
 		for (array<int, 2> unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			state.ScanBoard(white);//reset the piece moves

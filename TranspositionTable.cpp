@@ -215,7 +215,7 @@ unsigned int TranspositionTable::updateKobristKey(GameState state, unsigned int 
 			key = key ^ getKey(7, 3, 1, true, true);
 		}
 		else if (y_new ==  0) {
-			if (x_new == 5) {
+			if (x_new == 6) {
 				key = key ^ getKey(0, 7, 1, false, false);
 				key = key ^ getKey(0, 7, -1, false, false);
 				key = key ^ getKey(0, 5, -1, false, false);

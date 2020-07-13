@@ -187,6 +187,23 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 	else if (whtKingPntr == nullptr || whtKingPntr->color == black || whtKingPntr->id != 5) {
 		return { -99999,-1,-1 };
 	}
+	//remember which pieces were enpassable
+	vector<int> enpassable;
+	int enpassableRow;
+	if (player == white) {
+		enpassableRow = 4;
+	}
+	else {
+		enpassableRow = 3;
+	}
+	for (int i = 0; i < 8; i++) {
+		if (state.board[enpassableRow][i] != nullptr && state.board[enpassableRow][i]->id == 0) {
+			pawn = dynamic_cast<Pawn*>(state.board[enpassableRow][i]);
+			if (pawn->enPassant) {
+				enpassable.push_back({ i });
+			}
+		}
+	}
 	unsigned int stateKey = table.updateKobristEnpassant(state.board, kobristKey, player);
 	state.ScanBoard(player);
 	//return worst value if player is checkmated
@@ -220,7 +237,6 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0]*10 + units[0][1];
 		array<int,2>baseWhiteMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseWhiteMove[0] * 10 + baseWhiteMove[1];
-		 
 		for (array<int, 2> unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			state.ScanBoard(white);//reset the piece moves
@@ -231,7 +247,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
-				bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
+				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
 				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
 					data = { table.transposeList[hash]->whiteEval, -1,-1};
 				}
@@ -241,12 +257,12 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					data = minimax(tempState, depth - 1, alpha, beta, black, key, table);
 					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthW < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
-						table.transposeList[hash] = new Transposition(key, depth, data[0], white);
+						table.transposeList[hash] = new Transposition(key, depth-1, data[0], white);
 					}
 					//else if(whiteEval == 10000)
-					else {
+					else if(table.transposeList[hash]->whiteEval == 10000 && table.transposeList[hash]->zobristKey == key) {
 						table.transposeList[hash]->whiteEval = data[0];
-						table.transposeList[hash]->depthW = depth;
+						table.transposeList[hash]->depthW = depth-1;
 					}
 					//have to delete new pointers from promotions to avoid stack overflow, and others
 					if (enpass == 2) {
@@ -304,6 +320,11 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 				break;
 			}
 		}
+		//reset enpassant
+		for (int i : enpassable) {
+			pawn = dynamic_cast<Pawn*>(state.board[enpassableRow][i]);
+			pawn->SetEnPassant(true);
+		}
 		return { maxEval, nextMove,selectPiece };
 	}
 	else {
@@ -332,12 +353,12 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					data = minimax(tempState, depth - 1, alpha, beta, white, key, table);
 					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthB < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
-						table.transposeList[hash] = new Transposition(key, depth, data[0], black);
+						table.transposeList[hash] = new Transposition(key, depth-1, data[0], black);
 					}
 					//else if(blackEval == 10000)
-					else {
+					else if(table.transposeList[hash]->blackEval == 100000 && key == table.transposeList[hash]->zobristKey) {
 						table.transposeList[hash]->blackEval = data[0];
-						table.transposeList[hash]->depthB = depth;
+						table.transposeList[hash]->depthB = depth-1;
 					}
 					//have to delete new pointers from promotions to avoid stack overflow
 					if (enpass == 2) {
@@ -395,6 +416,11 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 			if (beta <= alpha) {
 				break;
 			}
+		}
+		//reset enpassant
+		for (int i : enpassable) {
+			pawn = dynamic_cast<Pawn*>(state.board[enpassableRow][i]);
+			pawn->SetEnPassant(true);
 		}
 		return {minEval, nextMove, selectPiece };
 

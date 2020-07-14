@@ -122,7 +122,7 @@ unsigned int TranspositionTable::getKobristKey(GameState state)
 	return key;
 }
 
-unsigned int TranspositionTable::updateKobristKey(GameState state, unsigned int kobristKey, int y_old, int x_old, int y_new, int x_new)
+unsigned int TranspositionTable::updateKobristKey(GameState &state, unsigned int kobristKey, int y_old, int x_old, int y_new, int x_new)
 {
 	unsigned int key = kobristKey;
 	Piece* newPos = state.board[y_new][x_new];

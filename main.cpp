@@ -396,7 +396,12 @@ int main()
         if (didMove) {
             kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
-            data = minimax(gameState, 3, -9999, 9999, !player, kobristKey, table);
+            if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 15) {
+                data = minimax(gameState, 5, -9999, 9999, !player, kobristKey, table);
+            }
+            else {
+                data = minimax(gameState, 4, -9999, 9999, !player, kobristKey, table);
+            }
             if (data[1] != -1) {
                 y_newAI = data[1] / 10;
                 x_newAI = data[1] % 10;

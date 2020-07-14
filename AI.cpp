@@ -1,7 +1,7 @@
 #include "AI.h"
 
 
-GameState CopyGameState(GameState &state)
+GameState CopyGameState(GameState& state)
 {
 	GameState retState;
 	retState.SetBoard(state.board);
@@ -99,6 +99,9 @@ int TreeMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 				pawn->SetEnPassant(true);
 			}
 		}
+		/*else if (abs(y_new - y_old) == 2) {
+			pawn->SetEnPassant(true);
+		}*/
 	}
 
 	//check for castle
@@ -238,17 +241,18 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0]*10 + units[0][1];
 		array<int,2>baseWhiteMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseWhiteMove[0] * 10 + baseWhiteMove[1];
-		vector<vector<array<int, 2>>> whiteMoves;
-		for (array<int, 2> unit : units) {
-			whiteMoves.push_back(state.board[unit[0]][unit[1]]->moves);
+		//store moveSet
+		vector<array<int, 2>> whiteMoves[64];
+		for (array<int,2> unit : units) {
+			whiteMoves[unit[0] * 8 + unit[1]] = state.board[unit[0]][unit[1]]->moves;
 		}
 		for (array<int, 2> unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			//state.ScanBoard(white);//reset the piece moves
-			unitMoves = state.board[unit[0]][unit[1]]->moves;
-			idx++;
+			//unitMoves = state.board[unit[0]][unit[1]]->moves;
+			
 			//for (array <int, 2> move : unitMoves) {
-			for(array<int,2> move: whiteMoves[idx]){
+		    for(array<int,2> move: whiteMoves[unit[0]*8 + unit[1]]){
 				tempMove = move[0] * 10 + move[1];
 				//key = kobristKey; // resetKey
 				key = stateKey;
@@ -340,23 +344,21 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 		selectPiece = units[0][0] * 10 + units[0][1];
 		array<int, 2>baseBlackMove = (state.board[units[0][0]][units[0][1]]->moves)[0];
 		nextMove = baseBlackMove[0] * 10 + baseBlackMove[1];
-		vector<vector<array<int, 2>>> blackMoves;
+		vector<array<int, 2>> blackMoves[64];
 		for (array<int, 2> unit : units) {
-			blackMoves.push_back(state.board[unit[0]][unit[1]]->moves);
+			blackMoves[unit[0] * 8 + unit[1]] = state.board[unit[0]][unit[1]]->moves;
 		}
 		for (array<int, 2>unit : units) {
 			currPiece = unit[0] * 10 + unit[1];
 			//state.ScanBoard(black);//reset the piece moves
-			unitMoves = state.board[unit[0]][unit[1]]->moves;
-			idx++;
+			//unitMoves = state.board[unit[0]][unit[1]]->moves;
 			//for (array <int, 2> move : unitMoves) {
-			for (array<int, 2> move : blackMoves[idx]) {
+			for (array<int, 2> move : blackMoves[unit[0]*8 + unit[1]]) {
 				tempMove = move[0] * 10 + move[1];
 				//key = kobristKey; // resetKey
 				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
-				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depth >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000);
 				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthB >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
 					data = { table.transposeList[hash]->blackEval, -1,-1 };
 				}

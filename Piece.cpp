@@ -171,14 +171,14 @@ vector<array<int, 2>> Pawn::getMoves(GameState &state, int y, int x)
 		}
 		//check if there is a white piece to its bottom left
 		if (y + 1 < 8 && x - 1 >= 0) {
-			if (state.board[y + 1][x - 1] != NULL && state.board[y + 1][x - 1]->color == white) {
+			if (state.board[y + 1][x - 1] != nullptr && state.board[y + 1][x - 1]->color == white) {
 				array<int, 2>temp = { y + 1,x - 1 };
 				moves.push_back(temp);
 			}
 		}
 		//check if there is a white piece to its bottom right
 		if (y + 1 < 8 && x + 1 < 8) {
-			if (state.board[y + 1][x + 1] != NULL && state.board[y + 1][x + 1]->color == white) {
+			if (state.board[y + 1][x + 1] != nullptr && state.board[y + 1][x + 1]->color == white) {
 				array<int, 2>temp = { y + 1,x + 1 };
 				moves.push_back(temp);
 			}

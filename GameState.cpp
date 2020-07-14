@@ -124,7 +124,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 	for (int row = y_lowLim; row <= y_upLim; row++) {
 		for (int col = x_lowLim; col <= x_upLim; col++) {
 			if (board[row][col] != nullptr) {
-				Piece* test = board[row][col];
+			Piece* test = board[row][col];
 				accessMoves.lock();
 				//board[row][col]->moves = board[row][col]->getMoves(*this, row, col);
 				board[row][col]->getMoves(*this, row, col);
@@ -157,7 +157,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					}
 				}
 				//if it is whites' turn, pawns on row 4 are no longer enpassant-able
-				if (row == 4  && player == white) {
+				else if (row == 4  && player == white) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
 						pawn->SetEnPassant(false);
@@ -247,6 +247,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 							localBlackPnts = localBlackPnts + 25;
 						}
 					}
+					break;
 				}
 			}
 		}
@@ -270,23 +271,6 @@ void GameState::ScanBoard(bool player) {
 	King* whiteKing = dynamic_cast<King*>(board[whiteKingY][whiteKingX]);
 	bool blackKingInCheck = blackKing->inCheck(*this, blackKingY, blackKingX);
 	bool whiteKingInCheck = whiteKing->inCheck(*this, whiteKingY, whiteKingX);
-
-	/*if (player == black) {
-		for (int i = 0; i < 8; i++) {
-			if (board[3][i] != nullptr && board[3][i]->id == 0) {
-				pawn = dynamic_cast<Pawn*>(board[3][i]);
-				pawn->SetEnPassant(false);
-			}
-		}
-	}
-	else if (player == white) {
-		for (int i = 0; i < 8; i++) {
-			if (board[4][i] != nullptr && board[4][i] == 0) {
-				pawn = dynamic_cast<Pawn*>(board[4][i]);
-				pawn->SetEnPassant(false);
-			}
-		}
-	}*/
 
 	/*std::thread first(&GameState::subScan,this,player,0,7,0,2);
 	std::thread second(&GameState::subScan, this, player, 0, 7, 3, 5);
@@ -359,7 +343,7 @@ void GameState::SetBoard(Piece* set[8][8])
 }
 
 //Check to see if the players king will be in check after the move. Return true if unsafe.
-bool GameState::safeMove(GameState state, int y_old, int x_old, int y_new, int x_new)
+bool GameState::safeMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 {
 	bool color = state.board[y_old][x_old]->color;
 	bool white = true;
@@ -379,7 +363,7 @@ bool GameState::safeMove(GameState state, int y_old, int x_old, int y_new, int x
 	//check for enpassant
 	if (temp.board[y_old][x_old]->id == 0) {
 		if (temp.board[y_new][x_new] == nullptr && x_old != x_new) {
-			state.board[y_old][x_new] = nullptr;
+			temp.board[y_old][x_new] = nullptr;
 		}
 	}
 	//does the move

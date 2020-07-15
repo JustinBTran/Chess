@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 template <typename T>
 std::string NumberToString(T Number)
@@ -277,7 +278,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					GameState tempState = CopyGameState(state);
 					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
 					data = minimax(tempState, depth - 1, alpha, beta, black, key, table);
-					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthW < depth) {//replace the kobristKey if the depth is better
+					if (table.transposeList[hash] == nullptr || max(table.transposeList[hash]->depthW,table.transposeList[hash]->depthB) < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth-1, data[0], white);
 						/*if (depth > 2) {
@@ -383,7 +384,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					GameState tempState = CopyGameState(state);
 					enpass = TreeMove(tempState, unit[0], unit[1], move[0], move[1]);
 					data = minimax(tempState, depth - 1, alpha, beta, white, key, table);
-					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthB < depth) {//replace the kobristKey if the depth is better
+					if (table.transposeList[hash] == nullptr || max(table.transposeList[hash]->depthW, table.transposeList[hash]->depthB) < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth-1, data[0], black);
 						/*if (depth > 2) {

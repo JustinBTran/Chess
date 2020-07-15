@@ -1,4 +1,15 @@
 #include "AI.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+template <typename T>
+std::string NumberToString(T Number)
+{
+	std::ostringstream ss;
+	ss << Number;
+	return ss.str();
+}
 
 
 GameState CopyGameState(GameState& state)
@@ -259,7 +270,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
 				//bool test = (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000);
-				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthW >= depth-1 && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->whiteEval != 10000) {
 					data = { table.transposeList[hash]->whiteEval, -1,-1};
 				}
 				else {
@@ -269,6 +280,12 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthW < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth-1, data[0], white);
+						/*if (depth > 2) {
+							ofstream myfile;
+							myfile.open ("transpo.txt", fstream::app);
+							myfile << "\ntransposeList[" << NumberToString(hash) << "] = new Transposition(" << NumberToString(key) << "," << NumberToString(depth-1) << "," << NumberToString(data[0]) << ", true);" ;
+							myfile.close();
+						}*/
 					}
 					//else if(whiteEval == 10000)
 					else if(table.transposeList[hash]->whiteEval == 10000 && table.transposeList[hash]->zobristKey == key) {
@@ -359,7 +376,7 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 				key = stateKey;
 				key = table.updateKobristKey(state, key, unit[0], unit[1], move[0], move[1]);
 				hash = table.hashFunction(key);
-				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthB >= depth && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
+				if (table.transposeList[hash] != nullptr && table.transposeList[hash]->depthB >= depth-1 && table.transposeList[hash]->zobristKey == key && table.transposeList[hash]->blackEval != 10000) {
 					data = { table.transposeList[hash]->blackEval, -1,-1 };
 				}
 				else {
@@ -369,6 +386,12 @@ array<int, 3> minimax(GameState state, int depth, int alpha, int beta, bool play
 					if (table.transposeList[hash] == nullptr || table.transposeList[hash]->depthB < depth) {//replace the kobristKey if the depth is better
 						delete(table.transposeList[hash]);
 						table.transposeList[hash] = new Transposition(key, depth-1, data[0], black);
+						/*if (depth > 2) {
+							ofstream myfile;
+							myfile.open("transpo.txt", fstream::app);
+							myfile << "\ntransposeList[" << NumberToString(hash) << "] = new Transposition(" << NumberToString(key) << "," << NumberToString(depth-1) << "," << NumberToString(data[0]) << ", false);";
+							myfile.close();
+						}*/
 					}
 					//else if(blackEval == 10000)
 					else if(table.transposeList[hash]->blackEval == 100000 && key == table.transposeList[hash]->zobristKey) {

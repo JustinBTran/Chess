@@ -104,6 +104,7 @@ void Win(sf::RenderWindow& window, bool player, bool stalemate) {
 
 int main()
 {
+   
     //Init backend
     GameState gameState = GameState();
     Rook* whiteRookA = new Rook(white);
@@ -258,7 +259,35 @@ int main()
     
     gameState.ScanBoard(player);
     TranspositionTable table = TranspositionTable();
+    table.initTable();
     unsigned int kobristKey = table.getKobristKey(gameState);
+    array<int, 2> blackPiece;
+    array<int, 2> whitePiece;
+
+    //kobrist not working
+   /* array<int, 32768> verify = {0};
+    bool verified = false;
+    while (verified == false) {
+        verify = { 0 };
+        verified = true;
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 13; j++) {
+                if (table.keys[i][j] > 32768) {
+
+                }
+                else {
+                    verify[table.keys[i][j]]++;
+                    if (verify[table.keys[i][j]] > 1) {
+                        table.keys[i][j] = (unsigned int)rand() % 4294967295;
+                        verified = false;
+
+                    }
+                }
+            }
+        }
+    }*/
+
+
 
     while (window.isOpen()) {
         //Update mouse positions
@@ -358,6 +387,14 @@ int main()
                 Win(window, white, true);
                 game = false;
             }
+            else if (gameState.blackMoveableUnits.size() == 1 && gameState.whiteMoveableUnits.size() == 1){
+                blackPiece = gameState.blackMoveableUnits[0];
+                whitePiece = gameState.whiteMoveableUnits[0];
+                if (gameState.board[blackPiece[0]][blackPiece[1]]->id == 5 && gameState.board[whitePiece[0]][whitePiece[1]]->id == 5) {
+
+                }
+
+            }
             else if (gameState.blackMoveableUnits.size() == 0) {
                 Win(window, white, false);
                 game = false;
@@ -397,7 +434,7 @@ int main()
             kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
             if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 15) {
-                data = minimax(gameState, 5, -9999, 9999, !player, kobristKey, table);
+                data = minimax(gameState, 4, -9999, 9999, !player, kobristKey, table);
             }
             else {
                 data = minimax(gameState, 4, -9999, 9999, !player, kobristKey, table);

@@ -125,28 +125,24 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 		for (int col = x_lowLim; col <= x_upLim; col++) {
 			if (board[row][col] != nullptr) {
 			Piece* test = board[row][col];
-				accessMoves.lock();
-				//board[row][col]->moves = board[row][col]->getMoves(*this, row, col);
+				//accessMoves.lock();
 				board[row][col]->getMoves(*this, row, col);
-				accessMoves.unlock();
+				//accessMoves.unlock();
 				//If the piece have moves it can do, add it to (player)MoveableUnites
 				if (board[row][col]->color == white) {
 					if (board[row][col]->moves.size() > 0) {
-						accessMoves.lock();
-						//pushBack.lock();
+						//accessMoves.lock();
 						whiteMoveableUnits.push_back({ row,col });
-						//pushBack.unlock();
-						accessMoves.unlock();
-
+						//accessMoves.unlock();
 					}
 				}
 				else if (board[row][col]->color == black) {
 					if (board[row][col]->moves.size() > 0) {
-						accessMoves.lock();
+						//accessMoves.lock();
 						//pushBack.lock();
 						blackMoveableUnits.push_back({ row,col });
 						//pushBack.unlock();
-						accessMoves.unlock();
+						//accessMoves.unlock();
 					}
 				}
 				//if it is blacks' turn, pawns on row 3 are no longer enpassant-able
@@ -174,6 +170,20 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 						localWhitePnts = localWhitePnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
 						//accessMoves.unlock();
 						localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr;
+						switch (col) {
+						case 2:
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr*0.5;
+							break;
+						case 3:
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							break;
+						case 4:
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							break;
+						case 5:
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							break;
+						}
 					}
 					else if (board[row][col]->color == black) {
 						localBlackPnts += 100;
@@ -182,6 +192,20 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 						localBlackPnts = localBlackPnts + board[row][col]->getAttackingMoves(*this, row, col).size() * movePnts;
 						//accessMoves.unlock();
 						localBlackPnts = localBlackPnts + row * pwnAdvncmntFctr;
+						switch (col) {
+						case 2:
+							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							break;
+						case 3:
+							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							break;
+						case 4:
+							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							break;
+						case 5:
+							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							break;
+						}
 					}
 					break;
 				case 1:
@@ -272,13 +296,13 @@ void GameState::ScanBoard(bool player) {
 	bool blackKingInCheck = blackKing->inCheck(*this, blackKingY, blackKingX);
 	bool whiteKingInCheck = whiteKing->inCheck(*this, whiteKingY, whiteKingX);
 
-	/*std::thread first(&GameState::subScan,this,player,0,7,0,2);
-	std::thread second(&GameState::subScan, this, player, 0, 7, 3, 5);
-	std::thread third(&GameState::subScan, this, player, 0, 7, 6, 7);
+	/*std::thread first(&GameState::subScan,this,player,0,7,0,3);
+	std::thread second(&GameState::subScan, this, player, 0, 7, 4, 7);
+	//std::thread third(&GameState::subScan, this, player, 0, 7, 6, 7);
 	//std::thread fourth(&GameState::subScan, this, player, 0, 7, 6, 7);
 	first.join();
 	second.join();
-	third.join();
+	//third.join();
 	//fourth.join();*/
 	subScan(player, 0, 7, 0, 3);
 	subScan(player, 0, 7, 4, 7);

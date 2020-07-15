@@ -268,3 +268,9 @@ unsigned int TranspositionTable::updateKobristEnpassant(Piece* board[8][8], unsi
 	}
 	return retKey;
 }
+
+void TranspositionTable::initTable()
+{
+
+
+}

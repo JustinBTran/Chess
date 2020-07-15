@@ -1,6 +1,9 @@
 #pragma once
 #include <stdlib.h>  
 #include "GameState.h"
+#include <random>
+
+
 
 class Transposition {
 public:
@@ -29,31 +32,34 @@ public:
 class TranspositionTable {
 public:
 	TranspositionTable(){
+		const int min = 1;
+		const int max = 4294967295;
+		default_random_engine generator;
+		uniform_int_distribution<unsigned int> distribution(min, max);
 		for (int i = 0; i < 64; i++) {
 			for (int j = 0; j < 13; j++) {
-				keys[i][j] = (unsigned int) rand() % 4294967295;
+				keys[i][j] = distribution(generator);
 			}
-			//enpassant
-			if ((i > 23 && i < 32) || (i <= 39 && i>=32)) {// enpassant
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+			if ((i >= 24 && i < 32) || (i <= 39 && i>=32)) {// enpassant
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 0) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 4) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 7) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 56) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 60) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}
 			else if (i == 63) {
-				keys[i][13] = (unsigned int)rand() % 4294967295;
+				keys[i][13] = distribution(generator);
 			}	
 		}
 		for (int i = 0; i < 1000; i++) {
@@ -67,5 +73,6 @@ public:
 	unsigned int updateKobristKey(GameState &state, unsigned int kobristKey, int y_old, int x_old, int y_new, int x_new);
 	int hashFunction(unsigned int kobristKey);
 	unsigned int updateKobristEnpassant(Piece* board[8][8], unsigned int key, bool player);
+	void initTable();
 };
 

@@ -7,7 +7,7 @@ vector<array<int, 2>> fltrMoves(GameState &state, vector<array<int, 2>> moves, i
 {
 	vector<array<int, 2>> fltr;
 	for (auto move : moves) {
-		bool unSafe = state.safeMove(state,y,x,move[0],move[1]);
+		bool unSafe = state.safeMove(y,x,move[0],move[1]);
 		if (!unSafe) {
 			fltr.push_back(move);
 		}
@@ -810,7 +810,7 @@ vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 				//see if queen side rook has not moved there is no pieces between the king and the queen side rook
 				if (cast->hasMoved == false && state.board[7][1] == nullptr && state.board[7][2] == nullptr && state.board[7][3] == nullptr) {
 					//see if king passes through check
-					unSafe = state.safeMove(state, y, x, 7, 3);
+					unSafe = state.safeMove( y, x, 7, 3);
 					if (unSafe == false) {
 						moves.push_back({7,2});
 					}
@@ -822,7 +822,7 @@ vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 				//see if king side rook has not moved there is no pieces between the king and the queen side rook
 				if (castr->hasMoved == false && state.board[7][6] == nullptr && state.board[7][5] == nullptr) {
 					//see if king passes through check
-					unSafe = state.safeMove(state, y, x, 7, 5);
+					unSafe = state.safeMove(y, x, 7, 5);
 					if (unSafe == false) {
 						moves.push_back({ 7,6 });
 					}
@@ -837,7 +837,7 @@ vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 				//see if queen side rook has not moved there is no pieces between the king and the queen side rook
 				if (cast->hasMoved == false && state.board[0][1] == nullptr && state.board[0][2] == nullptr && state.board[0][3] == nullptr) {
 					//see if king passes through check
-					unSafe = state.safeMove(state, y, x, 0, 3);
+					unSafe = state.safeMove( y, x, 0, 3);
 					if (unSafe == false) {
 						moves.push_back({ 0,2 });
 					}
@@ -849,7 +849,7 @@ vector<array<int, 2>> King::getMoves(GameState& state, int y, int x)
 				//see if king side rook has not moved there is no pieces between the king and the queen side rook
 				if (castr->hasMoved == false && state.board[0][6] == nullptr && state.board[0][5] == nullptr) {
 					//see if king passes through check
-					unSafe = state.safeMove(state, y, x, 0, 5);
+					unSafe = state.safeMove(y, x, 0, 5);
 					if (unSafe == false) {
 						moves.push_back({ 0,6 });
 					}

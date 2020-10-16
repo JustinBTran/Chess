@@ -264,31 +264,6 @@ int main()
     array<int, 2> blackPiece;
     array<int, 2> whitePiece;
 
-    //kobrist not working
-   /* array<int, 32768> verify = {0};
-    bool verified = false;
-    while (verified == false) {
-        verify = { 0 };
-        verified = true;
-        for (int i = 0; i < 64; i++) {
-            for (int j = 0; j < 13; j++) {
-                if (table.keys[i][j] > 32768) {
-
-                }
-                else {
-                    verify[table.keys[i][j]]++;
-                    if (verify[table.keys[i][j]] > 1) {
-                        table.keys[i][j] = (unsigned int)rand() % 4294967295;
-                        verified = false;
-
-                    }
-                }
-            }
-        }
-    }*/
-
-
-
     while (window.isOpen()) {
         //Update mouse positions
         mousePosScreen = sf::Mouse::getPosition();
@@ -409,7 +384,6 @@ int main()
         //render
         window.display();
         if (game == false) {
-            //didMove = false;
             //loop until player closes the game
             while (true) {
                 sf::Event end;
@@ -431,13 +405,14 @@ int main()
         }
 
         if (didMove) {
+            int depth = 4;
             kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
             if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 15) {
-                data = minimax(gameState, 4, -9999, 9999, !player, kobristKey, table);
+                data = minimax(gameState, depth, -9999, 9999, !player, kobristKey, table);
             }
             else {
-                data = minimax(gameState, 4, -9999, 9999, !player, kobristKey, table);
+                data = minimax(gameState, depth, -9999, 9999, !player, kobristKey, table);
             }
             if (data[1] != -1) {
                 y_newAI = data[1] / 10;

@@ -124,7 +124,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 	for (int row = y_lowLim; row <= y_upLim; row++) {
 		for (int col = x_lowLim; col <= x_upLim; col++) {
 			if (board[row][col] != nullptr) {
-			Piece* test = board[row][col];
+				Piece* test = board[row][col];
 				//accessMoves.lock();
 				board[row][col]->getMoves(*this, row, col);
 				//accessMoves.unlock();
@@ -153,7 +153,7 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 					}
 				}
 				//if it is whites' turn, pawns on row 4 are no longer enpassant-able
-				else if (row == 4  && player == white) {
+				else if (row == 4 && player == white) {
 					if (board[row][col] != nullptr && board[row][col]->id == 0) {
 						pawn = dynamic_cast<Pawn*>(board[row][col]);
 						pawn->SetEnPassant(false);
@@ -172,16 +172,16 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 						localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr;
 						switch (col) {
 						case 2:
-							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr*0.5;
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 1.2;
 							break;
 						case 3:
-							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 1.5;
 							break;
 						case 4:
-							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 1.5;
 							break;
 						case 5:
-							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							localWhitePnts = localWhitePnts + (7 - row) * pwnAdvncmntFctr * 1.2;
 							break;
 						}
 					}
@@ -194,16 +194,16 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 						localBlackPnts = localBlackPnts + row * pwnAdvncmntFctr;
 						switch (col) {
 						case 2:
-							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							localBlackPnts = localBlackPnts + (row) * pwnAdvncmntFctr * 1.2;
 							break;
 						case 3:
-							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							localBlackPnts = localBlackPnts + (row) * pwnAdvncmntFctr * 1.5;
 							break;
 						case 4:
-							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.8;
+							localBlackPnts = localBlackPnts + (row) * pwnAdvncmntFctr * 1.5;
 							break;
 						case 5:
-							localBlackPnts = localBlackPnts + (7 - row) * pwnAdvncmntFctr * 0.5;
+							localBlackPnts = localBlackPnts + (row) * pwnAdvncmntFctr * 1.2;
 							break;
 						}
 					}
@@ -313,7 +313,7 @@ void GameState::ScanBoard(bool player) {
 		//ReverseVector(blackMoveableUnits);
 		quicksort(blackMoveableUnits, 0, blackMoveableUnits.size() - 1);
 		ReverseVector(blackMoveableUnits);
-		
+
 	}
 	if (whiteKing->hasMoved == true) {
 		blackPnts = blackPnts + 20;
@@ -343,7 +343,7 @@ void GameState::ScanBoard(bool player) {
 			whitePnts = 0;
 		}
 	}
-	
+
 }
 
 void GameState::SetWhiteKingPos(int y, int x) {
@@ -367,23 +367,23 @@ void GameState::SetBoard(Piece* set[8][8])
 }
 
 //Check to see if the players king will be in check after the move. Return true if unsafe.
-bool GameState::safeMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
+bool GameState::safeMove(int y_old, int x_old, int y_new, int x_new)
 {
-	bool color = state.board[y_old][x_old]->color;
+	bool color = this->board[y_old][x_old]->color;
 	bool white = true;
 	bool black = false;
 	array<int, 2> kingPos;
 	if (color == white) {
-		kingPos = { state.whiteKingY,state.whiteKingX };
+		kingPos = { this->whiteKingY,this->whiteKingX };
 	}
 	else {
-		kingPos = { state.blackKingY,state.blackKingX };
+		kingPos = { this->blackKingY,this->blackKingX };
 	}
 	if (y_old == kingPos[0] && x_old == kingPos[1]) {
 		kingPos = { y_new,x_new };
 	}
 	GameState temp;
-	temp.SetBoard(state.board);
+	temp.SetBoard(this->board);
 	//check for enpassant
 	if (temp.board[y_old][x_old]->id == 0) {
 		if (temp.board[y_new][x_new] == nullptr && x_old != x_new) {
@@ -402,13 +402,13 @@ bool GameState::safeMove(GameState& state, int y_old, int x_old, int y_new, int 
 //Check to see if the move is an EnPassant. If so kill the pawn that moved last turn
 int GameState::EnPassant(GameState& state, int y_old, int x_old, int y_new, int x_new)
 {
-	if (state.board[y_old][x_old] == nullptr || state.board[y_old][x_old]->id != 0) {
+	if (this->board[y_old][x_old] == nullptr || this->board[y_old][x_old]->id != 0) {
 		return 0;
 	}
 	//Enpassant means the pawn is moving to an empty stop, which is not in the same column it was before
-	if (state.board[y_new][x_new] == nullptr && x_old != x_new) {
-		delete(state.board[y_old][x_new]);
-		state.board[y_old][x_new] = nullptr;
+	if (this->board[y_new][x_new] == nullptr && x_old != x_new) {
+		delete(this->board[y_old][x_new]);
+		this->board[y_old][x_new] = nullptr;
 		return 1;
 	}
 
@@ -417,7 +417,7 @@ int GameState::EnPassant(GameState& state, int y_old, int x_old, int y_new, int 
 
 int GameState::promote(int y, int x, string unitChar)
 {
-	if (board[y][x] == nullptr) {
+	if (this->board[y][x] == nullptr) {
 		return 0;
 	}
 	if (board[y][x]->id == 0) {
@@ -578,111 +578,6 @@ int GameState::blackMove(GameState& state)
 	}
 	return 0;
 }
-
-/*
-int GameState::whiteMove(GameState& state)
-{
-	cout << "\nWhite Move!";
-	bool white = true;
-	bool black = false;
-	bool nonValid;
-	int id;
-	int y_old;
-	int x_old;
-	int y_new;
-	int x_new;
-	bool validPiece = false;
-	int prom = 0;
-	while (validPiece == false) {
-		printf("\n");
-		cout << "enter y_old: ";
-		cin >> y_old;
-		cout << "enter x_old: ";
-		cin >> x_old;
-		if (y_old > 7 || x_old > 7) {
-			printf("location out of bounds");
-		}
-		else if (state.board[y_old][x_old] == nullptr) {
-			printf("there is no piece at that spot");
-		}
-		else if (state.board[y_old][x_old]->color != white) {
-			printf("That piece is not white!");
-			//return 0;
-		}
-		else {
-			validPiece = true;
-		}
-	}
-	cout << "enter y_new: ";
-	cin >> y_new;
-	cout << "enter x_new: ";
-	cin >> x_new;
-	if (y_old == y_new && x_old == x_new) {
-		printf("A piece cannot move to the spot it is already in!");
-		return 0;
-	}
-	else if (y_new > 7 || x_old > 7) {
-		printf("location out of bounds");
-		return 0;
-	}
-	else {
-		//vector<array<int, 2>>moves = state.board[y_old][x_old]->getMoves(state, y_old, x_old);
-		vector<array<int, 2>>moves = state.board[y_old][x_old]->moves;
-		nonValid = std::find(moves.begin(), moves.end(), std::array<int, 2>{ y_new, x_new }) == moves.end();
-		if (nonValid) {
-			printf("That piece can't move there!");
-			return 0;
-		}
-		else {
-			//check if there is a piece in the spot we want to move. If so kill it
-			if (state.board[y_new][x_new] != nullptr) {
-				delete(state.board[y_new][x_new]);
-			}
-			id = state.board[y_old][x_old]->id;
-			if (id == 0) {
-				Pawn* cast = dynamic_cast<Pawn*>(board[y_old][x_old]);
-				cast->hasMoved = true;
-				//If the pawn moved forward 2 spaces, make it enpassant-able
-				if (y_new == (y_old - 2)) {
-					cast->SetEnPassant(true);
-				}
-				EnPassant(state, y_old, x_old, y_new, x_new);
-				if (y_new == 0) {
-					while (prom == 0) {
-						string unitChar = choosePromote();
-						prom = promote(y_old, x_old, unitChar);
-					}
-				}
-			}
-			if (id == 1) {
-				Rook* cast = dynamic_cast<Rook*>(board[y_old][x_old]);
-				cast->hasMoved = true;
-			}
-			if (id == 5) {
-				King* cast = dynamic_cast<King*>(board[y_old][x_old]);
-				cast->hasMoved = true;
-				SetWhiteKingPos(y_new, x_new);
-				//move rook for castle moves
-				if (y_old == 7 && x_old == 4 && y_new == y_old && x_new == (x_old - 2)) {
-					state.board[7][3] = state.board[7][0];
-					state.board[7][0] = nullptr;
-					Rook* rook = dynamic_cast<Rook*>(board[7][3]);
-					rook->hasMoved = true;
-				}
-				else if (y_old == 7 && x_old == 4 && y_new == y_old && x_new == (x_old + 2)) {
-					state.board[7][5] = state.board[7][7];
-					state.board[7][7] = nullptr;
-					Rook* rook = dynamic_cast<Rook*>(board[7][5]);
-					rook->hasMoved = true;
-				}
-			}
-			state.board[y_new][x_new] = state.board[y_old][x_old];
-			state.board[y_old][x_old] = nullptr;
-			return 1;
-		}
-	}
-	return 0;
-}*/
 
 int GameState::whiteMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 {

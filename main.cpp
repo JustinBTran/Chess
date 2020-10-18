@@ -408,7 +408,7 @@ int main()
             int depth = 4;
             kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
-            if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 15) {
+            if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 12) {
                 data = minimax(gameState, depth, -9999, 9999, !player, kobristKey, table);
             }
             else {

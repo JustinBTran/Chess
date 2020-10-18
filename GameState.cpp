@@ -117,8 +117,8 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 	Pawn* pawn;
 	bool black = false;
 	bool white = true;
-	int movePnts = 15;
-	int pwnAdvncmntFctr = 20;
+	int movePnts = 10;
+	int pwnAdvncmntFctr = 15;
 	int localBlackPnts = 0;
 	int localWhitePnts = 0;
 	for (int row = y_lowLim; row <= y_upLim; row++) {
@@ -257,18 +257,18 @@ void GameState::subScan(bool player, int y_lowLim, int y_upLim, int x_lowLim, in
 				case 5:
 					if (board[row][col]->color == white) {
 						if ((col < 3 && board[7][0] == nullptr) || (col > 5 && board[7][7] == nullptr)) {
-							localWhitePnts = localWhitePnts + 100;
+							localWhitePnts = localWhitePnts + 50;
 						}
 						if (row > 6) {
-							localWhitePnts = localWhitePnts + 25;
+							localWhitePnts = localWhitePnts + 20;
 						}
 					}
 					else if (board[row][col]->color == black) {
 						if ((col < 3 && board[0][0] == nullptr) || (col > 5 && board[0][7] == nullptr)) {
-							localBlackPnts = localBlackPnts + 100;
+							localBlackPnts = localBlackPnts + 50;
 						}
 						if (row < 1) {
-							localBlackPnts = localBlackPnts + 25;
+							localBlackPnts = localBlackPnts + 20;
 						}
 					}
 					break;
@@ -400,7 +400,7 @@ bool GameState::safeMove(int y_old, int x_old, int y_new, int x_new)
 }
 
 //Check to see if the move is an EnPassant. If so kill the pawn that moved last turn
-int GameState::EnPassant(GameState& state, int y_old, int x_old, int y_new, int x_new)
+int GameState::EnPassant( int y_old, int x_old, int y_new, int x_new)
 {
 	if (this->board[y_old][x_old] == nullptr || this->board[y_old][x_old]->id != 0) {
 		return 0;
@@ -540,7 +540,7 @@ int GameState::blackMove(GameState& state)
 				if (y_new == (y_old + 2)) {
 					cast->SetEnPassant(true);
 				}
-				EnPassant(state, y_old, x_old, y_new, x_new);
+				EnPassant( y_old, x_old, y_new, x_new);
 				if (y_new == 7) {
 					while (prom == 0) {
 						string unitChar = choosePromote();
@@ -596,7 +596,7 @@ int GameState::whiteMove(GameState& state, int y_old, int x_old, int y_new, int 
 		if (y_new == (y_old - 2)) {
 			cast->SetEnPassant(true);
 		}
-		EnPassant(state, y_old, x_old, y_new, x_new);
+		EnPassant( y_old, x_old, y_new, x_new);
 		if (y_new == 0) {
 			while (prom == 0) {
 				//string unitChar = choosePromote();

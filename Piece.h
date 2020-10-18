@@ -42,7 +42,6 @@ public:
 	}
 	bool hasMoved;
 	void SetHasMoved(bool moved);
-	//std::vector<int[2]> getMoves(GameState);
 	vector<array<int,2> > getMoves(GameState &state, int y, int x);
 };
 

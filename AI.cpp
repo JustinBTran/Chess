@@ -492,7 +492,7 @@ void AIMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 			if (y_new == (y_old + 2)) {
 				cast->SetEnPassant(true);
 			}
-			state.EnPassant(state, y_old, x_old, y_new, x_new);
+			state.EnPassant(y_old, x_old, y_new, x_new);
 			if (y_new == 7) {
 				prom = state.promote(y_old, x_old, "Q");
 			}
@@ -528,7 +528,7 @@ void AIMove(GameState& state, int y_old, int x_old, int y_new, int x_new)
 			if (y_new == (y_old - 2)) {
 				cast->SetEnPassant(true);
 			}
-			state.EnPassant(state, y_old, x_old, y_new, x_new);
+			state.EnPassant(y_old, x_old, y_new, x_new);
 			if (y_new == 0) {
 				prom = state.promote(y_old, x_old, "Q");
 			}

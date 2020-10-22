@@ -2,9 +2,14 @@
 #include "GameState.h"
 #include "AI.h"
 
+#define _WIN32_WINNT 0x0500
+#include <windows.h>
+#include <iostream>
+
 
 bool white = true;
 bool black = false;
+
 
 sf::Color ResetTileColor(int y, int x) {
     if ((y + x) % 2 == 0) {
@@ -204,9 +209,6 @@ int main()
     w_queen.loadFromFile("images/w-queen.png");
     sf::Texture w_king;
     w_king.loadFromFile("images/w-king.png");
-    sf::Texture dot;
-    dot.loadFromFile("images/green-dot");
-
     sf::Texture textures[12] = { b_pawn,b_rook,b_knight,b_bishop,b_queen,b_king,w_pawn, w_rook, w_knight,w_bishop,w_queen,w_king };
 
     //Init sprites
@@ -263,6 +265,9 @@ int main()
     unsigned int kobristKey = table.getKobristKey(gameState);
     array<int, 2> blackPiece;
     array<int, 2> whitePiece;
+    int depth = 5;
+    HWND hWnd = GetConsoleWindow();
+    ShowWindow(hWnd, SW_HIDE);
 
     while (window.isOpen()) {
         //Update mouse positions
@@ -405,14 +410,13 @@ int main()
         }
 
         if (didMove) {
-            int depth = 4;
             kobristKey = table.updateKobristEnpassant(gameState.board, kobristKey, !player);
             gameState.ScanBoard(!player);
             if ((gameState.whiteMoveableUnits.size() + gameState.blackMoveableUnits.size()) < 12) {
-                data = minimax(gameState, depth, -9999, 9999, !player, kobristKey, table);
+                data = minimax(gameState, depth-1, -9999, 9999, !player, kobristKey, table);
             }
             else {
-                data = minimax(gameState, depth, -9999, 9999, !player, kobristKey, table);
+                data = minimax(gameState, depth-1, -9999, 9999, !player, kobristKey, table);
             }
             if (data[1] != -1) {
                 y_newAI = data[1] / 10;
